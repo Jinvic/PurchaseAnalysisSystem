@@ -94,8 +94,15 @@ def selenium():
         except:
             break
 
-    time.sleep(100)
+    cookies = browser.get_cookies()
+    print(cookies)
     browser.close()
+
+    session = requests.session()
+    for cookie in cookies:
+        session.cookies.set(cookie['name'], cookie['value'])
+
+    return session, cookies
 
 
 if __name__ == '__main__':
