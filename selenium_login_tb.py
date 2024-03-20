@@ -13,11 +13,12 @@ import gap_detection_cv
 
 # 输入账号密码并点击登录
 def login(browser, username, password):
-    input_username = browser.find_element(By.ID, "loginname")
+    # MARK:
+    input_username = browser.find_element(By.ID, "fm-login-id")
     input_username.send_keys(username)
-    input_password = browser.find_element(By.ID, "nloginpwd")
+    input_password = browser.find_element(By.ID, "fm-login-password")
     input_password.send_keys(password)
-    button_login = browser.find_element(By.ID, "loginsubmit")
+    button_login = browser.find_element(By.CLASS_NAME, "fm-button.fm-submit.password-login")
     button_login.click()
 
 
@@ -85,7 +86,7 @@ def slide_captcha(browser, offset):
 def selenium():
     browser = webdriver.Chrome()
     wait = WebDriverWait(browser, 5)
-    target_url = "https://passport.jd.com/new/login.aspx"
+    target_url = "https://login.taobao.com/"
     browser.get(url=target_url)
 
     username = "15211406057"
@@ -94,14 +95,18 @@ def selenium():
     captcha = False
     try:
         # print(browser.current_url)
-        wait.until(EC.url_to_be('https://www.jd.com/'))  # 判断是否直接跳转主页
+        wait.until(EC.url_to_be('https://www.taobao.com/'))  # 判断是否直接跳转主页
         # print(browser.current_url)
     except SE.TimeoutException:
-        msg_error = browser.find_element(By.CLASS_NAME, 'msg-error').text
+        # MARK:
+        # msg_error = browser.find_element(By.CLASS_NAME, 'msg-error').text
+        msg_error = browser.find_element(By.CLASS_NAME, 'login-error-msg').text
         if (msg_error != ''):
             print(msg_error)
         else:
             captcha = True
+
+    time.sleep(1000)
 
     while (captcha):  # 没有跳转，需要验证
         # 等待验证码弹出
@@ -124,7 +129,7 @@ def selenium():
     # print(cookies)
     browser.close()
 
-    session = requests.Session()
+    session = requests.session()
     for cookie in cookies:
         session.cookies.set(cookie['name'], cookie['value'])
     print(session)

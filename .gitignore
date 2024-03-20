@@ -14,6 +14,8 @@ pip-selfcheck.json
 测试样例
 __pycache__
 *.png
-Spider.py
 test.py
 main.py
+*.html
+tmp.*
+cookies.py
