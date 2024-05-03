@@ -2,6 +2,7 @@ import requests
 from pyquery import PyQuery as pq
 # from selenium_class import Selenium
 import selenium_login
+import data_process
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -45,7 +46,7 @@ def get_goods_id_jd(keywords):
     return id_list
 
 
-def get_history_price(goods_id):
+def get_history_price_page(goods_id):
     goods_url = 'https://item.jd.com/'+goods_id+'.html'
     print(goods_id)
     print(goods_url)
@@ -87,35 +88,49 @@ def get_history_price(goods_id):
     WebDriverWait(browser, 15).until(
         EC.presence_of_element_located((By.CLASS_NAME, 'promotion-item')))
 
-    # with open("price_result.html", mode="w", encoding='utf-8', newline='') as f:
-    #     f.write(browser.page_source)
-    # with open('price_result.html', 'r', encoding='utf-8') as f:
-    #     html = f.read()
-    # doc = pq(html)
+    with open("price_result.html", mode="w", encoding='utf-8', newline='') as f:
+        f.write(browser.page_source)
 
-    doc = pq(browser.page_source)
+
+def get_history_price_data():
+    with open('price_result.html', 'r', encoding='utf-8') as f:
+        html = f.read()
+    doc = pq(html)
+
+    # doc = pq(browser.page_source)
     datalist = doc('.promotion-list .promotion-item')
     datalist = datalist.items()
     price_list = list()
     for data in datalist:
-        d = dict()
-        d['date'] = data.find('.date').text()  # 日期
-        d['price'] = data.find('.ymj span').text()[1:]  # 价格
+        d = list()
+        d.append(data.find('.date').text())  # 日期
+        d.append(data.find('.ymj span').text()[1:])  # 价格
         price_list.append(d)
         # print(d['date']+'\t'+d['price'])
 
     print(len(price_list))
-    with open(goods_id+'.txt', mode='w', encoding='utf-8', newline='') as f:
-        for li in price_list:
-            f.write(li['date']+'\t'+li['price']+'\n')
+    # with open(goods_id+'.txt', mode='w', encoding='utf-8', newline='') as f:
+    #     for li in price_list:
+    #         f.write(li['date']+'\t'+li['price']+'\n')
 
     return price_list
 
 
-if __name__ == '__main__':
-    id_list = get_goods_id_jd(['北通', '手柄'])
-    for id in id_list:
-        print(id)
-        get_history_price(id)
-        break
+def get_history_price(goods_id):
+    # get_history_price_page(goods_id)
+    price_list = get_history_price_data()
+    data_process.save_row_data(price_list, goods_id)
+    return price_list
+
+
+# DEBUG:
+# if __name__ == '__main__':
+#     id_list = get_goods_id_jd(['北通', '手柄'])
+#     for id in id_list:
+#         print(id)
+#         get_history_price(id)
     # get_history_price('https://item.jd.com/4979408.html')
+
+# DEBUG:
+if __name__ == '__main__':
+    get_history_price(4979408)
