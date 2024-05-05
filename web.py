@@ -44,4 +44,5 @@ def receive_sms():
 
 
 if __name__ == '__main__':
+    sql_class.accounts_db_init()
     app.run(port=port, host=host, debug=True)

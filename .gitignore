@@ -24,3 +24,5 @@ cookies.py
 data/row_data/*
 data/processed_data/*
 *.db
+
+!requiements.txt
