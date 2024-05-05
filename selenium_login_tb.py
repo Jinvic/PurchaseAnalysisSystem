@@ -1,3 +1,5 @@
+# ***未完成&已弃用***
+
 import requests
 from urllib import request
 from selenium import webdriver
@@ -18,7 +20,8 @@ def login(browser, username, password):
     input_username.send_keys(username)
     input_password = browser.find_element(By.ID, "fm-login-password")
     input_password.send_keys(password)
-    button_login = browser.find_element(By.CLASS_NAME, "fm-button.fm-submit.password-login")
+    button_login = browser.find_element(
+        By.CLASS_NAME, "fm-button.fm-submit.password-login")
     button_login.click()
 
 
@@ -121,7 +124,7 @@ def selenium():
 
         try:
             wait.until(EC.text_to_be_present_in_element(
-                (By.CLASS_NAME, 'JDJRV-slide-bar-center'),'拼接成功'))
+                (By.CLASS_NAME, 'JDJRV-slide-bar-center'), '拼接成功'))
         except SE.TimeoutException:
             break
 

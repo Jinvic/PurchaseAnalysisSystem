@@ -20,7 +20,7 @@ main.py
 tmp.*
 *.txt
 cookies.py
-sql_class.py
 
 data/row_data/*
 data/processed_data/*
+*.db

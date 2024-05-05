@@ -1,3 +1,5 @@
+# ***已弃用***
+
 import requests
 from urllib import request
 from selenium import webdriver
