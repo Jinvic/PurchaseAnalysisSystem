@@ -1,3 +1,4 @@
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from sklearn.preprocessing import MinMaxScaler
@@ -60,32 +61,49 @@ model.fit(
     # shuffle=False
 )
 
-#预测未来价格
+# 预测未来价格
 predicted_prices = model.predict(X_test)
 # 反标准化预测结果
 predicted_prices = scaler.inverse_transform(predicted_prices)
 
-#可视化预测结果
-import matplotlib.pyplot as plt
-plt.plot(df.index[-len(y_test):], scaler.inverse_transform(y_test.reshape(-1, 1)), label='Actual Price')
+# 可视化预测结果
+plt.plot(df.index[-len(y_test):],
+         scaler.inverse_transform(y_test.reshape(-1, 1)), label='Actual Price')
 plt.plot(df.index[-len(y_test):], predicted_prices, label='Predicted Price')
 plt.xlabel('Date')
 plt.ylabel('Price')
 plt.legend()
 plt.show()
 
-# # 使用模型对未来价格进行预测（假设要预测未来5天）
-# future_days_to_predict = 5
-# last_train_index = len(train_data) - look_back
-# input_sequence = scaled_prices[last_train_index:last_train_index + look_back]
-# print(input_sequence.shape)
-# prediction_sequence = []
+# 获取训练数据的最后10天作为预测新数据的基底
+last_known_data = train_data[-look_back:]
+future_input = last_known_data.reshape(1, 1, look_back)
 
-# for _ in range(future_days_to_predict):
-#     prediction = model.predict(input_sequence[np.newaxis, :, :])[0, 0]
-#     prediction_sequence.append(prediction)
-#     input_sequence = np.concatenate((input_sequence[1:], [prediction]))
+# 预测未来5天的价格
+future_days = 5
+predicted_future_prices = []
 
-# # 反标准化未来预测结果
-# future_predicted_prices = scaler.inverse_transform(
-#     np.array(prediction_sequence).reshape(-1, 1))
+for _ in range(future_days):
+    forecast = model.predict(future_input)[0]
+    # 将预测值加入到输入序列中，以便预测下一天
+    future_input = np.concatenate(
+        (future_input[:, :, 1:], forecast.reshape(1, 1, 1)), axis=2)
+    # 反标准化预测值
+    predicted_future_price = scaler.inverse_transform(forecast.reshape(-1, 1))
+    predicted_future_prices.append(predicted_future_price[0][0])
+
+# 将预测的未来5天价格转换为适合绘图的格式
+last_date = df.index[-1]
+predicted_future_dates = pd.date_range(df.index[-1] + pd.DateOffset(
+    1), periods=future_days, end=last_date + pd.DateOffset(future_days))
+
+# 绘制未来5天的预测价格
+plt.plot(predicted_future_dates, predicted_future_prices,
+         label='Predicted Future Price', linestyle='--')
+
+plt.title('Price Prediction')
+plt.xlabel('Date')
+plt.ylabel('Price')
+plt.legend()
+plt.tight_layout()  # 自动调整子图参数, 使之填充整个图像区域
+plt.show()

@@ -1,7 +1,7 @@
 import requests
 from pyquery import PyQuery as pq
-# from selenium_class import Selenium
-import selenium_login
+from selenium_class import Selenium
+# import selenium_login
 import data_process
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -25,10 +25,10 @@ def get_goods_id_jd(keywords):
     index_url_jd = 'https://www.jd.com'
     search_url_jd = 'https://search.jd.com/Search?keyword='
 
-    # selenium_jd = Selenium(login_url_jd, index_url_jd, search_url_jd)
+    selenium_jd = Selenium(login_url_jd, index_url_jd, search_url_jd)
     # selenium_jd.selenium_login()
-    # selenium_jd.selenium_search(keywords)
-    selenium_login.selenium_search(keywords)
+    selenium_jd.selenium_search(keywords)
+    # selenium_login.selenium_search(keywords)
 
     # 解析网页数据
     with open('search_result.html', 'r', encoding='utf-8') as f:
@@ -117,7 +117,7 @@ def get_history_price_data():
 
 
 def get_history_price(goods_id):
-    # get_history_price_page(goods_id)
+    get_history_price_page(goods_id)
     price_list = get_history_price_data()
     data_process.save_row_data(price_list, goods_id)
     return price_list

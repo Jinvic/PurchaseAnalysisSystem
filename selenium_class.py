@@ -7,6 +7,7 @@ from selenium.webdriver.support import expected_conditions as EC
 import selenium.common.exceptions as SE
 import time
 import random
+import json
 from sql_class import SQLiteTool
 import gap_detection_cv
 
@@ -161,10 +162,12 @@ class Selenium:
         button_login.click()  # 等待登录
 
         cookies = browser.get_cookies()
-        # print(cookies, type(cookies))
-        # print(cookies[0], type(cookies[0]))
-        # with open("cookies.txt", mode="w", encoding='utf-8', newline='') as f:
-        #     f.write(str(cookies))
+        # 将cookies转换为JSON字符串
+        cookies_json = json.dumps(cookies)
+
+        # 将JSON字符串写入文件
+        with open('cookies.txt', 'w') as file:
+            file.write(cookies_json)
 
         browser.close()
 
@@ -189,8 +192,25 @@ class Selenium:
 
         browser = webdriver.Chrome()
         browser.get(index_url)
-        for cookie in self.cookies:
-            browser.add_cookie(cookie)
+        # for cookie in self.cookies:
+        #     browser.add_cookie(cookie)
+
+        # 读取cookies文件
+        with open('cookies.txt', 'r') as file:
+            cookies_json = file.read()
+        cookies = json.loads(cookies_json)
+        for cookie in cookies:
+            browser.execute_cdp_cmd("Network.setCookie", {
+                'name': cookie['name'],
+                'value': cookie['value'],
+                'domain': cookie['domain'],
+                'path': cookie['path'],
+                'secure': cookie.get('secure', False),
+                'httpOnly': cookie.get('httpOnly', False),
+                'sameSite': cookie.get('sameSite', 'Lax'),
+            })
+
+        browser.refresh()
         browser.get(search_url)
         time.sleep(5)
         print(browser.page_source)
