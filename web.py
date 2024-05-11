@@ -1,11 +1,12 @@
 from flask import Flask, request, jsonify, render_template
 import re
 import sql_class
+import pandas as pd
 import Spider
 app = Flask(__name__)
 
 # 测试用，实际使用需要更改主机与端口号
-host = '172.17.148.62'
+host = '172.17.151.119'
 port = '8000'
 
 
@@ -15,10 +16,21 @@ def index():
     return render_template('index.html')
 
 
+@app.route('/login')
+def login():
+    return render_template('login.html')
+
+
+@app.route('/register')
+def register():
+    return render_template('register.html')
+
+
 # TEST:
 @app.route('/search', methods=['POST'])
-def process_keywords():
-    keywords_input = request.form.get('keywords', '').strip()  # 使用get方法获取'keywords'字段的值，并去除首尾空白
+def search():
+    # 使用get方法获取'keywords'字段的值，并去除首尾空白
+    keywords_input = request.form.get('keywords', '').strip()
     keywords_list = keywords_input.split()  # 使用split方法按空格分割字符串，得到关键词列表
     for keyword in keywords_list:
         print(keyword)
@@ -28,26 +40,41 @@ def process_keywords():
             'image_url': 'https://img13.360buyimg.com/n7/jfs/t1/217829/35/40208/131284/662619bcF69949721/aeb0076a7ec2a215.jpg',
             'title': '北通阿修罗2无线游戏手柄xbox线性扳机震动PC电脑steam电视特斯拉即插即玩双人成行原神胡闹厨房NBA 黑',
             'price': '159.90',
+            'goods_id': '4979408',
             'row_addr': 'https://item.jd.com/4979408.html'
         },
         {
             'image_url': 'https://img11.360buyimg.com/n7/jfs/t1/245828/39/6930/120005/66151861F073dc22d/3a43149cd4683822.jpg',
             'title': '北通斯巴达3多模无线游戏手柄xbox蓝牙体感NS霍尔线性扳机switch电脑PC手机电视车机steam小小梦魇原神',
             'price': '239.00',
+            'goods_id': '100068057171',
             'row_addr': 'https://item.jd.com/100068057171.html'
         }
     ]
-    # display_info(info_list)
-    # 返回响应给前端，这里简单返回一个确认信息
-    # return '完成'
-    return render_template('display_data.html', info=info_list)
+    return render_template('search_result.html', info=info_list)
 
 
-# def display_info(info_list):
-#     return render_template('display_data.html', info=info_list)
-
+# TEST:
+@app.route('/pridict', methods=['POST'])
+def pridict():
+    selected_goods_id = request.form.get('rowSelection')  # 直接获取商品id
+    if selected_goods_id:
+        print(f"Selected goods id: {selected_goods_id}")
+        # 读取CSV文件
+        df = pd.read_csv('data/processed_data/4979408.csv')
+        # 将日期列转换为字符串格式，便于在HTML中直接使用
+        df['Date'] = pd.to_datetime(df['Date']).dt.strftime('%Y-%m-%d')
+        # 准备数据为JSON格式，但这里直接传递DataFrame给模板更直观
+        return render_template('pridict_result.html', data=df.to_dict(orient='records'))
+    else:
+        print("No row was selected.")
+    # 根据需要返回响应
+    # return redirect(url_for('show_table'))
+    # return selected_goods_id
 
 # 获取SmsForwarder转发的验证码
+
+
 @app.route('/receive_sms', methods=['POST'])
 def receive_sms():
     # 获取并解析请求中的数据

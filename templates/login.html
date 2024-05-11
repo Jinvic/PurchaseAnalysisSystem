@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>登录</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+
+    .navbar {
+      background-color: #333;
+      overflow: hidden;
+      position: sticky;
+      top: 0;
+      width: 100%;
+    }
+
+    .navbar a {
+      float: left;
+      display: block;
+      color: white;
+      text-align: center;
+      padding: 14px 16px;
+      text-decoration: none;
+    }
+
+    .navbar a.right {
+      float: right;
+    }
+
+    .search-container {
+      text-align: center;
+      padding: 20px;
+    }
+  </style>
+  <style>
+    /* body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      background-color: #f0f2f5;
+    } */
+
+    .container {
+      margin: auto;
+      background-color: white;
+      padding: 20px;
+      border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+      width: 300px;
+    }
+
+    input[type=text],
+    input[type=password] {
+      width: 100%;
+      padding: 12px 20px;
+      margin: 8px 0;
+      display: inline-block;
+      border: 1px solid #ccc;
+      box-sizing: border-box;
+    }
+
+    button {
+      background-color: #4CAF50;
+      color: white;
+      padding: 14px 20px;
+      margin: 8px 0;
+      border: none;
+      cursor: pointer;
+      width: 100%;
+    }
+
+    button:hover {
+      opacity: 0.8;
+    }
+
+    a {
+      display: block;
+      text-align: center;
+      text-decoration: none;
+      color: dodgerblue;
+      margin-top: 15px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="navbar">
+    <a href="#home">首页</a>
+    <a href="#history">历史记录</a>
+    <a class="right" href="#login">登录</a>
+  </div>
+
+  <br>
+  <br>
+  <br>
+  <br>
+  <br>
+
+  <div class="container">
+    <h2>登录</h2>
+    <form action="/your-login-endpoint" method="post">
+      <label for="username"><b>账号</b></label>
+      <input type="text" placeholder="Enter Username" name="username" required>
+
+      <label for="password"><b>密码</b></label>
+      <input type="password" placeholder="Enter Password" name="password" required>
+      <!-- <p style="font-size: 12px; color: red;">账号或密码错误</p> -->
+      <button type="submit">登录</button>
+    </form>
+    <p>新用户? <a href="register.html">马上注册</a></p>
+  </div>
+
+</body>
+
+</html>

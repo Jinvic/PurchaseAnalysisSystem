@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>注册</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+
+    .navbar {
+      background-color: #333;
+      overflow: hidden;
+      position: sticky;
+      top: 0;
+      width: 100%;
+    }
+
+    .navbar a {
+      float: left;
+      display: block;
+      color: white;
+      text-align: center;
+      padding: 14px 16px;
+      text-decoration: none;
+    }
+
+    .navbar a.right {
+      float: right;
+    }
+  </style>
+  <style>
+    /* body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      background-color: #f0f2f5;
+    } */
+
+    .container {
+      background-color: white;
+      margin: auto;
+      padding: 20px;
+      border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+      width: 300px;
+    }
+
+    input[type=text],
+    input[type=password],
+    input[type=email] {
+      width: 100%;
+      padding: 12px 20px;
+      margin: 8px 0;
+      display: inline-block;
+      border: 1px solid #ccc;
+      box-sizing: border-box;
+    }
+
+    button {
+      background-color: #4CAF50;
+      color: white;
+      padding: 14px 20px;
+      margin: 8px 0;
+      border: none;
+      cursor: pointer;
+      width: 100%;
+    }
+
+    button:hover {
+      opacity: 0.8;
+    }
+
+    a {
+      display: block;
+      text-align: center;
+      text-decoration: none;
+      color: dodgerblue;
+      margin-top: 15px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="navbar">
+    <a href="#home">首页</a>
+    <a href="#history">历史记录</a>
+    <a class="right" href="#login">登录</a>
+  </div>
+
+  <br>
+  <br>
+  <br>
+  <br>
+  <br>
+
+  <div class="container">
+    <h2>注册</h2>
+    <form action="/register" method="post">
+      <label for="username"><b>用户名</b></label>
+      <input type="text" placeholder="Enter Username" name="username" required>
+
+      <label for="email"><b>邮箱</b></label>
+      <input type="email" placeholder="Enter Email" name="email" required>
+
+      <label for="password"><b>密码</b></label>
+      <input type="password" placeholder="Enter Password" name="password" required>
+
+      <label for="confirm_password"><b>确认密码</b></label>
+      <input type="password" placeholder="Confirm Password" name="confirm_password" required>
+      <p style="font-size: 12px;color: red;">两次输入的密码不一致</p>
+      <button type="submit">注册</button>
+    </form>
+    <p>已有账号? <a href="login.html">登录</a></p>
+  </div>
+
+</body>
+
+</html>

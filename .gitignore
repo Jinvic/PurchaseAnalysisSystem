@@ -20,9 +20,12 @@ main.py
 tmp.*
 *.txt
 cookies.py
+*.csv
 
 data/row_data/*
 data/processed_data/*
 *.db
 
 !requiements.txt
+!templates/*.html
+templates/*_test.html

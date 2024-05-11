@@ -29,7 +29,7 @@ def create_dataset(data, look_back=10):
     return np.array(X), np.array(Y)
 
 
-look_back = 10  # 用过去10天的价格预测未来一天
+look_back = 7  # 用过去若干天的价格预测未来一天
 X_train, y_train = create_dataset(train_data, look_back)
 X_test, y_test = create_dataset(test_data, look_back)
 
@@ -39,7 +39,6 @@ X_test = np.reshape(X_test, (X_test.shape[0], 1, X_test.shape[1]))
 
 # 2. 构建并训练LSTM模型
 model = Sequential()
-# model = keras.models.Sequential()
 
 # 添加LSTM层，设置隐藏单元数为50
 model.add(LSTM(units=50, return_sequences=True, input_shape=(1, look_back)))
@@ -55,8 +54,8 @@ model.fit(
     X_train,
     y_train,
     epochs=100,  # 调整训练轮数
-    batch_size=1,  # 调整批量大小
-    # validation_data=(X_test, y_test),
+    batch_size=32,  # 调整批量大小
+    validation_data=(X_test, y_test),#指定验证数据集，监控过拟合，不参与更新。
     verbose=2,
     # shuffle=False
 )
@@ -75,12 +74,12 @@ plt.ylabel('Price')
 plt.legend()
 plt.show()
 
-# 获取训练数据的最后10天作为预测新数据的基底
+# 获取训练数据的最后look_back天作为预测新数据的基底
 last_known_data = train_data[-look_back:]
 future_input = last_known_data.reshape(1, 1, look_back)
 
-# 预测未来5天的价格
-future_days = 5
+# 预测未来若干天的价格
+future_days = 30
 predicted_future_prices = []
 
 for _ in range(future_days):
@@ -92,12 +91,12 @@ for _ in range(future_days):
     predicted_future_price = scaler.inverse_transform(forecast.reshape(-1, 1))
     predicted_future_prices.append(predicted_future_price[0][0])
 
-# 将预测的未来5天价格转换为适合绘图的格式
+# 将预测的价格转换为适合绘图的格式
 last_date = df.index[-1]
 predicted_future_dates = pd.date_range(df.index[-1] + pd.DateOffset(
     1), periods=future_days, end=last_date + pd.DateOffset(future_days))
 
-# 绘制未来5天的预测价格
+# 绘制的预测价格
 plt.plot(predicted_future_dates, predicted_future_prices,
          label='Predicted Future Price', linestyle='--')
 
@@ -107,3 +106,25 @@ plt.ylabel('Price')
 plt.legend()
 plt.tight_layout()  # 自动调整子图参数, 使之填充整个图像区域
 plt.show()
+
+# 将训练集实际价格保存到CSV
+# train_results = pd.DataFrame(
+#     {'Date': df.index[:train_size], 'Price': scaler.inverse_transform(prices[:train_size]).flatten()})
+# train_results.to_csv('train_results.csv', index=False)
+
+# # 将测试集实际与预测价格合并并保存到CSV
+# print(df.index[-len(y_test):].shape)
+# # print(y_test.shape)
+# # print(y_test.reshape(-1, 1).shape)
+# print(scaler.inverse_transform(y_test.reshape(-1, 1)).flatten().shape)
+# # print(predicted_prices.shape)
+# print(predicted_prices.flatten().shape)
+
+# test_results = pd.DataFrame({'Date': df.index[-len(y_test):], 'Actual_Price': scaler.inverse_transform(
+#     y_test.reshape(-1, 1)).flatten(), 'Predicted_Price': predicted_prices.flatten()})
+# test_results.to_csv('test_results.csv', index=False)
+
+# # 将未来预测价格保存到CSV
+# future_predictions = pd.DataFrame(
+#     {'Date': predicted_future_dates, 'Predicted_Future_Price': predicted_future_prices})
+# future_predictions.to_csv('future_predictions.csv', index=False)
