@@ -161,6 +161,29 @@ def accounts_db_init():
     # 关闭连接
     db.close_connection()
 
+# 用户数据库初始化
+
+
+def users_db_init():
+
+    # 创建数据库
+    db = SQLiteTool("users.db")
+    create_table_sql = '''
+    CREATE TABLE IF NOT EXISTS users (
+        uid INTEGER PRIMARY KEY,
+        username TEXT NOT NULL UNIQUE,
+        password TEXT NOT NULL,
+        email NOT NULL UNIQUE
+    );
+    '''
+    db.create_table(create_table_sql)
+
+    insert_sql = "INSERT INTO users VALUES (?, ?, ?, ?)"
+    db.insert_data(insert_sql, (0, 'admin', 'admin', 'admin'))
+
+    # 关闭连接
+    db.close_connection()
+
 
 # DEBUG:
 def test():
@@ -182,9 +205,19 @@ def test():
     # accounts = db.query_data(query_sql+mobile_number)
     # for account in accounts:
     #     print(account)
+
+    # 查询数据
+    # db = SQLiteTool("users.db")
+    # username = 'admin'
+    # query_sql = "SELECT * FROM users WHERE username = " + \
+    #     f'\'{str(username)}\''
+    # user_data = db.query_data(query_sql)
+    # print(query_sql)
+    # print(user_data)
     pass
 
 
 if __name__ == '__main__':
     accounts_db_init()
+    users_db_init()
     # test()

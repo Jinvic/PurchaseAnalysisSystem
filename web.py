@@ -1,13 +1,157 @@
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, session, flash, redirect, url_for, jsonify, render_template
+from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required
 import re
+import os
 import sql_class
 import pandas as pd
 import Spider
 app = Flask(__name__)
 
 # 测试用，实际使用需要更改主机与端口号
-host = '172.17.151.119'
+# host = '172.17.151.119'
+host = '192.168.43.135'
 port = '8000'
+
+
+# 初始化数据库表
+def initialize_database():
+    sql_class.accounts_db_init()
+    sql_class.users_db_init()
+
+
+# flask-login配置
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'login'
+login_manager.login_message = '请先登录以访问此页面。'
+login_manager.login_message_category = 'Access denied.'
+app.config['SECRET_KEY'] = os.urandom(16).hex()
+
+
+# 用户模型
+class User(UserMixin):
+    db_path = 'users.db'
+
+    def __init__(self, uid, username, password, email):
+        self.uid = uid
+        self.username = username
+        self.password = password
+        self.email = email
+
+    @classmethod
+    def get_by_id(cls, uid):
+        db = sql_class.SQLiteTool(cls.db_path)
+        query_sql = "SELECT * FROM users WHERE uid = " + str(uid)
+        user_data = db.query_data(query_sql)
+        db.close_connection()
+        if user_data:
+            return cls(*user_data[0])
+        return None
+
+    @classmethod
+    def get_by_username(cls, username):
+        db = sql_class.SQLiteTool(cls.db_path)
+        query_sql = "SELECT * FROM users WHERE username = " + \
+            f'\'{str(username)}\''
+        user_data = db.query_data(query_sql)
+        db.close_connection()
+        if user_data:
+            return cls(*user_data[0])
+        return None
+
+    @classmethod
+    def get_by_email(cls, email):
+        db = sql_class.SQLiteTool(cls.db_path)
+        query_sql = "SELECT * FROM users WHERE email = " + \
+            f'\'{str(email)}\''
+        user_data = db.query_data(query_sql)
+        db.close_connection()
+        if user_data:
+            return cls(*user_data[0])
+        return None
+
+    @classmethod
+    def create_user(cls, username, password, email):
+        db = sql_class.SQLiteTool(cls.db_path)
+        query_sql = "SELECT MAX(uid) FROM users"
+        max_uid = db.query_data(query_sql)[0][0]
+        uid = max_uid+1
+        insert_sql = "INSERT INTO users VALUES (?, ?, ?, ?)"
+        db.insert_data(insert_sql, (uid, username, password, email))
+        db.close_connection()
+        return cls(uid, username, password, email)
+
+    def get_id(self):
+        return str(self.uid)
+
+
+# 用户加载回调
+@login_manager.user_loader
+def load_user(uid):
+    return User.get_by_id(uid)
+
+
+@login_manager.request_loader
+def request_loader(request):
+    pass
+
+
+# 登录
+@app.route('/login', methods=['POST'])
+def login():
+    username = request.form['username']
+    password = request.form['password']
+    user = User.get_by_username(username=username)
+
+    if user and user.password == password:
+        login_user(user)
+        return redirect(url_for('index'))  # 登录成功后重定向
+    else:
+        # flash('用户名或密码错误', 'error')
+        # return redirect(url_for('login_page'))
+        session['error_msg'] = '用户名或密码错误'
+        return redirect(url_for('error'))
+
+
+# 注册
+@app.route('/register', methods=['POST'])
+def register():
+    username = request.form['username']
+    email = request.form['email']
+    password = request.form['password']
+    confirm_password = request.form['confirm_password']
+
+    if password != confirm_password:
+        session['error_msg'] = '两次密码不匹配'
+        return redirect(url_for('error'))
+
+    user1 = User.get_by_username(username=username)
+    user2 = User.get_by_email(email=email)
+
+    if user1 or user2:
+        session['error_msg'] = '用户名或邮箱已被使用'
+        return redirect(url_for('error'))
+
+    # 创建新用户
+    new_user = User.create_user(username, password, email)
+    # 注册完成直接登录
+    login_user(new_user)
+    return redirect(url_for('index'))
+
+
+# 登出
+@app.route('/logout')
+@login_required  # 确保只有登录用户才能访问此视图
+def logout():
+    logout_user()
+    return redirect(url_for('index'))
+
+
+@app.route('/error')
+def error():
+    # 从session中取出并删除msg，防止重放
+    msg = session.pop('error_msg', '未知错误')
+    return render_template('error.html', msg=msg)
 
 
 @app.route('/')
@@ -16,14 +160,20 @@ def index():
     return render_template('index.html')
 
 
-@app.route('/login')
-def login():
+@app.route('/login_page')
+def login_page():
     return render_template('login.html')
 
 
-@app.route('/register')
-def register():
+@app.route('/register_page')
+def register_page():
     return render_template('register.html')
+
+
+@app.route('/history_page')
+@login_required
+def history_page():
+    return "还没做呢"
 
 
 # TEST:
@@ -72,9 +222,8 @@ def pridict():
     # return redirect(url_for('show_table'))
     # return selected_goods_id
 
+
 # 获取SmsForwarder转发的验证码
-
-
 @app.route('/receive_sms', methods=['POST'])
 def receive_sms():
     # 获取并解析请求中的数据
@@ -105,5 +254,5 @@ def receive_sms():
 
 
 if __name__ == '__main__':
-    sql_class.accounts_db_init()
+    initialize_database()
     app.run(port=port, host=host, debug=True)

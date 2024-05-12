@@ -1,0 +1,63 @@
+{% extends "navigator.html" %}
+{% block title %}错误{% endblock %}
+{% block style %}
+<style scoped>
+    .error-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .error-card {
+        padding: 2rem;
+        text-align: center;
+        background-color: #fff;
+        border-radius: 5px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .error-code {
+        color: #D85030;
+        font-size: 3em;
+        margin-bottom: 0.5em;
+    }
+
+    .error-message {
+        font-size: 1.2em;
+        line-height: 1.5;
+        color: #333;
+    }
+
+    .back {
+        display: inline-block;
+        padding: 0.5em 1em;
+        background-color: #007BFF;
+        color: white;
+        text-decoration: none;
+        border-radius: 3px;
+        margin-top: 1em;
+        transition: background-color 0.3s ease;
+    }
+
+    .back:hover {
+        background-color: #0056b3;
+    }
+</style>
+{% endblock%}
+
+{% block content %}
+
+<br>
+<br>
+<br>
+<br>
+<br>
+
+<main class="error-container">
+    <div class="error-card">
+        <h1 class="error-code">Oops!</h1>
+        <p class="error-message">{{ msg }}</p>
+        <a href="javascript:history.back()" class="back">返回上一页</a>
+    </div>
+</main>
+{% endblock %}
