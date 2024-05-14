@@ -10,7 +10,9 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import selenium.common.exceptions as SE
 from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.chrome.options import Options
 import time
+import json
 
 # index_url_jd = 'https://www.jd.com'
 # session, _ = selenium_login.selenium()
@@ -65,33 +67,65 @@ def get_history_price_page(goods_id):
     # response = requests.get(search_url, headers=headers)
     # print(response.status_code)
 
-    browser = webdriver.Chrome()
-    browser.maximize_window()
-    browser.get('https://www.gwdang.com/v2/trend?from=search')
+    opt = Options()  # 新建参数对象
+    # opt.add_argument("--headless")  # 无头
+    browser = webdriver.Chrome(options=opt)
     # 绕过webdriver验证
     script = 'Object.defineProperty(navigator, "webdriver", { get: () => false, });'
     browser.execute_script(script=script)
+    
+    browser.get('https://www.gwdang.com/')
 
-    # 等待页面加载完成
-    WebDriverWait(browser, 10).until(
-        EC.presence_of_element_located((By.ID, 'url')))
+    with open('cookies_gwd.txt', 'r') as file:
+        cookies_json = file.read()
+    cookies = json.loads(cookies_json)
+    for cookie in cookies:
+        browser.execute_cdp_cmd("Network.setCookie", {
+            'name': cookie['name'],
+            'value': cookie['value'],
+            'domain': cookie['domain'],
+            'path': cookie['path'],
+            'secure': cookie.get('secure', False),
+            'httpOnly': cookie.get('httpOnly', False),
+            'sameSite': cookie.get('sameSite', 'Lax'),
+        })
+
+    browser.refresh()
+    browser.maximize_window()
+    browser.get('https://www.gwdang.com/v2/trend')
+
     input = browser.find_element(By.CSS_SELECTOR, '#url')
     button = browser.find_element(By.CSS_SELECTOR, '#search-button')
     input.send_keys(goods_url)
     input.send_keys(Keys.ENTER)
-    time.sleep(0.2)
-    # 设定动作链
-    action = webdriver.ActionChains(browser)
-    # 跳过第一次
-    action.send_keys(Keys.TAB).perform()
-    time.sleep(0.2)
-    action.send_keys(Keys.TAB).perform()
-    time.sleep(0.2)
-    # 循环一次
-    while (button != browser.switch_to.active_element):
-        action.send_keys(Keys.TAB).perform()
-        time.sleep(0.2)
-    action.send_keys(Keys.ENTER).perform()
+
+    # browser = webdriver.Chrome()
+    # browser.maximize_window()
+    # # 绕过webdriver验证
+    # script = 'Object.defineProperty(navigator, "webdriver", { get: () => false, });'
+    # browser.execute_script(script=script)
+    # browser.get('https://www.gwdang.com/v2/trend?from=search')
+
+    # # 等待页面加载完成
+    # WebDriverWait(browser, 10).until(
+    #     EC.presence_of_element_located((By.ID, 'url')))
+    # input = browser.find_element(By.CSS_SELECTOR, '#url')
+    # button = browser.find_element(By.CSS_SELECTOR, '#search-button')
+    # input.send_keys(goods_url)
+    # # input.send_keys(Keys.ENTER)
+    # # time.sleep(0.2)
+    # # 设定动作链
+    # action = webdriver.ActionChains(browser)
+    # # 跳过第一次
+    # action.send_keys(Keys.TAB).perform()
+    # time.sleep(0.2)
+    # action.send_keys(Keys.TAB).perform()
+    # time.sleep(0.2)
+    # # 循环一次
+    # while (button != browser.switch_to.active_element):
+    #     action.send_keys(Keys.TAB).perform()
+    #     time.sleep(0.2)
+    # action.send_keys(Keys.ENTER).perform()
 
     # 等待页面加载完成
     WebDriverWait(browser, 15).until(
@@ -100,10 +134,14 @@ def get_history_price_page(goods_id):
     with open("price_result.html", mode="w", encoding='utf-8', newline='') as f:
         f.write(browser.page_source)
 
+    res = browser.page_source
+    browser.close()
+    return res
 
-def get_history_price_data():
-    with open('price_result.html', 'r', encoding='utf-8') as f:
-        html = f.read()
+
+def get_history_price_data(html):
+    # with open('price_result.html', 'r', encoding='utf-8') as f:
+    #     html = f.read()
     doc = pq(html)
 
     # doc = pq(browser.page_source)
@@ -126,9 +164,10 @@ def get_history_price_data():
 
 
 def get_history_price(goods_id):
-    get_history_price_page(goods_id)
-    price_list = get_history_price_data()
-    data_process.save_row_data(price_list, goods_id)
+    html = get_history_price_page(goods_id)
+    price_list = get_history_price_data(html)
+    # data_process.save_row_data(price_list, goods_id)
+    
     return price_list
 
 
@@ -142,4 +181,4 @@ def get_history_price(goods_id):
 
 # DEBUG:
 if __name__ == '__main__':
-    get_history_price(4979408)
+    get_history_price(str(4979408))

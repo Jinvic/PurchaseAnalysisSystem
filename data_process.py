@@ -3,34 +3,40 @@ import csv
 import shutil
 import pandas as pd
 
+
 # 创建存放数据的文件夹
+# def init():
+#     if (os.path.exists('data')):
+#         shutil.rmtree('data')
+#     os.makedirs('data/row_data')
+#     os.makedirs('data/processed_data')
 
 
-def init():
-    if (os.path.exists('data')):
-        shutil.rmtree('data')
-    os.makedirs('data/row_data')
-    os.makedirs('data/processed_data')
-
-# 将网页爬取的原始数据以csv格式存放
-
-
-def save_row_data(price_list, goods_id):
-    path = './data/row_data/'
-    filename = str(goods_id)+'.csv'
-    with open(path+filename, 'w', encoding='utf-8', newline='') as csvfile:
-        writer = csv.writer(csvfile)
-        writer.writerow(['Date', 'Price'])
-        for row in price_list:
-            writer.writerow(row)
+# # 将网页爬取的原始数据以csv格式存放
+# def save_row_data(price_list, goods_id):
+#     path = './data/row_data/'
+#     filename = str(goods_id)+'.csv'
+#     with open(path+filename, 'w', encoding='utf-8', newline='') as csvfile:
+#         writer = csv.writer(csvfile)
+#         writer.writerow(['Date', 'Price'])
+#         for row in price_list:
+#             writer.writerow(row)
 
 
 # 读取原始数据，并进行数据清洗
-def read_row_data(goods_id):
-    path = './data/row_data/'
-    filename = str(goods_id)+'.csv'
-    df = pd.read_csv(path+filename, delimiter=',')
+def data_process(price_list):
+    # path = './data/row_data/'
+    # filename = str(goods_id)+'.csv'
+    # df = pd.read_csv(path+filename, delimiter=',')
 
+    # print(price_list)
+    # DEBUG:
+    # if price_list==None:
+    #     df=pd.read_csv('row.csv')
+    # DEBUG:
+    # df.to_csv('row.csv', index=False)
+    
+    df = pd.DataFrame(price_list, columns=['Date', 'Price'])
     # 原始数据没有年份，稍微处理一下
     from datetime import datetime
     year = datetime.now().year  # 获取当前年份
@@ -48,7 +54,7 @@ def read_row_data(goods_id):
 
     # 去重
     df.drop_duplicates(inplace=True)
-    # print(df.head(15))
+    print(df.head(15))
 
     # 用前一天的数据填补空缺日期
     df.sort_values('Date', inplace=True)  # 排序
@@ -59,14 +65,14 @@ def read_row_data(goods_id):
     df = df.set_index('Date').reindex(
         date_range).fillna(method='ffill').reset_index()
     df = df.rename(columns={'index': 'Date'})  # 将新增的列名'index'改回'Date'
-    print(df.head)
+    # print(df.head)
 
     # 保存处理完成的数据
-    path = './data/processed_data/'
-    df.to_csv(path+filename, index=False)
+    # DEBUG
+    # df.to_csv('pro.csv', index=False)
+    print('data process clear.')
     return df
 
 
 if __name__ == '__main__':
-    df = read_row_data(4979408)
-    # print(df.info)
+    data_process(None)

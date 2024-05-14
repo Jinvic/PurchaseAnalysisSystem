@@ -120,7 +120,7 @@
 </style>
 {% endblock%}
 {% block content %}
-<form action="{{ url_for('pridict') }}" method="post">
+<form action="{{ url_for('pridict_history') }}" method="post">
     <div class="table-container">
         <p class="table-title">历史记录如下：</p>
         <table>
@@ -128,7 +128,6 @@
                 <th></th>
                 <th>用户id</th>
                 <th>查询id</th>
-                <th>关键词</th>
                 <th>商品id</th>
                 <th>起始日期</th>
                 <th>预测天数</th>

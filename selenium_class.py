@@ -81,6 +81,7 @@ class Selenium:
     index_url = ''
     search_url = ''
     cookies = list[dict]
+    
     opt = Options()  # 新建参数对象
     opt.add_argument("--headless")  # 无头
 
@@ -169,7 +170,7 @@ class Selenium:
         cookies_json = json.dumps(cookies)
 
         # 将JSON字符串写入文件
-        with open('cookies.txt', 'w') as file:
+        with open('cookies_jd.txt', 'w') as file:
             file.write(cookies_json)
 
         browser.close()
@@ -187,6 +188,63 @@ class Selenium:
         # return cookies
         self.cookies = cookies
 
+    def selenium_login_gwd(self):
+        login_url = 'https://www.gwdang.com/user/login/'
+        browser = webdriver.Chrome(options=self.opt)
+        browser.get(url=login_url)
+        # time.sleep(30)
+
+        # SQL：从账号池中找出一个可用账号
+        db = SQLiteTool('accounts.db')
+        query_sql = "SELECT * FROM accounts WHERE occupied = False"
+        accounts = db.query_data(query_sql)
+        if (len(accounts) == 0):
+            print('忙碌中，请稍候再试')
+            return False
+
+        update_sql = "UPDATE accounts SET occupied = ? WHERE mobile_number = ?"
+        db.update_data(update_sql, (True, accounts[0][0]))  # 标记该账号使用中
+
+        div_sms_login = browser.find_element(By.ID, 'sms-login')
+        div_sms_login.click()  # 切换到短信验证码登录
+        input_mobile_number = browser.find_element(By.ID, 'mobile-number')
+        input_mobile_number.send_keys(accounts[0][0])
+        button_send_code = browser.find_element(By.ID, 'send-sms-code-btn')
+        button_send_code.click()  # 发送验证码
+
+        # 每0.5秒检查一次是否收到验证码，等待5秒
+        cnt = 10
+        verification_code = ''
+        while (cnt):
+            query_sql = "SELECT * FROM accounts WHERE mobile_number = " + \
+                accounts[0][0]
+            verification_code = db.query_data(query_sql)[0][1]
+            if (verification_code != accounts[0][1]):
+                break
+            time.sleep(0.5)
+            cnt -= 1
+        update_sql = "UPDATE accounts SET occupied = ? WHERE mobile_number = ?"
+        db.update_data(update_sql, (False, accounts[0][0]))  # 标记该账号空闲
+        db.close_connection()
+        if (verification_code == accounts[0][1]):
+            print('请求验证码超时')
+            return False
+
+        input_sms_code = browser.find_element(By.ID, 'sms-code')
+        input_sms_code.send_keys(verification_code)  # 输入验证码
+        button_login = browser.find_element(By.ID, "sms-login-submit")
+        button_login.click()  # 等待登录
+
+        cookies = browser.get_cookies()
+        # 将cookies转换为JSON字符串
+        cookies_json = json.dumps(cookies)
+
+        # 将JSON字符串写入文件
+        with open('cookies_gwd.txt', 'w') as file:
+            file.write(cookies_json)
+
+        browser.close()
+
     # 在电商平台上搜索相关商品
     def selenium_search(self, keywords):
         index_url = self.index_url
@@ -200,7 +258,7 @@ class Selenium:
         #     browser.add_cookie(cookie)
 
         # 读取cookies文件
-        with open('cookies.txt', 'r') as file:
+        with open('cookies_jd.txt', 'r') as file:
             cookies_json = file.read()
         cookies = json.loads(cookies_json)
         for cookie in cookies:

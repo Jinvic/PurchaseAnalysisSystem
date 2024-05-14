@@ -1,4 +1,5 @@
 import sqlite3
+from datetime import datetime
 
 
 class SQLiteTool:
@@ -185,6 +186,50 @@ def users_db_init():
     db.close_connection()
 
 
+def users_db_init():
+
+    # 创建数据库
+    db = SQLiteTool("users.db")
+    create_table_sql = '''
+    CREATE TABLE IF NOT EXISTS users (
+        uid INTEGER PRIMARY KEY,
+        username TEXT NOT NULL UNIQUE,
+        password TEXT NOT NULL,
+        email NOT NULL UNIQUE
+    );
+    '''
+    db.create_table(create_table_sql)
+
+    insert_sql = "INSERT INTO users VALUES (?, ?, ?, ?)"
+    db.insert_data(insert_sql, (0, 'admin', 'admin', 'admin'))
+
+    # 关闭连接
+    db.close_connection()
+
+
+def queries_db_init():
+    # 创建数据库
+    db = SQLiteTool("queries.db")
+    create_table_sql = '''
+    CREATE TABLE IF NOT EXISTS queries (
+        qid INTEGER PRIMARY KEY,
+        uid INTEGER NOT NULL,
+        goods_id INTEGER NOT NULL,
+        start_date DATE NOT NULL,
+        pridict_days INTEGER NOT NULL
+    );
+    '''
+    db.create_table(create_table_sql)
+
+    insert_sql = "INSERT INTO queries VALUES (?, ?, ?, ?, ?)"
+    current_date = datetime.now().strftime('%Y-%m-%d')
+    # 占位测试用
+    db.insert_data(insert_sql, (0, 0, 0, current_date, 0))
+
+    # 关闭连接
+    db.close_connection()
+
+
 # DEBUG:
 def test():
     # 更新数据
@@ -218,6 +263,7 @@ def test():
 
 
 if __name__ == '__main__':
-    accounts_db_init()
-    users_db_init()
+    # accounts_db_init()
+    # users_db_init()
+    queries_db_init()
     # test()

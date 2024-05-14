@@ -5,7 +5,10 @@ import os
 import sql_class
 from selenium_class import Selenium
 import pandas as pd
+from datetime import datetime
 import Spider
+from data_process import data_process
+from LSTM import LSTM_pridict
 app = Flask(__name__)
 
 # 测试用，实际使用需要更改主机与端口号
@@ -18,6 +21,7 @@ port = '8000'
 def initialize_database():
     sql_class.accounts_db_init()
     sql_class.users_db_init()
+    sql_class.queries_db_init()
 
 
 # flask-login配置
@@ -179,7 +183,6 @@ def history():
         {
             'uid': 1,
             'qid': 1,
-            'keywords': '北通 手柄',
             'goods_id': '4979408',
             'start_date': '2024-03-28',
             'pridict_days': 30,
@@ -213,6 +216,10 @@ def pridict():
         query_sql = "SELECT MAX(qid) FROM queries"
         max_qid = db.query_data(query_sql)[0][0]
         qid = max_qid+1
+        insert_sql = "INSERT INTO queries VALUES (?, ?, ?, ?, ?)"
+        current_date = datetime.now().strftime('%Y-%m-%d', pridict_days)
+        db.insert_data(
+            insert_sql, (qid, uid, selected_goods_id, current_date, 0))
         db.close_connection()
 
     # if selected_goods_id:
@@ -226,6 +233,21 @@ def pridict():
     #     return render_template('pridict_result.html', data=df.to_dict(orient='records'))
     # else:
     #     print("No row was selected.")
+
+    # 获取原始数据
+    price_list = Spider.get_history_price(selected_goods_id)
+    processed_data = data_process(price_list)  # 数据处理
+    future_predictions = LSTM_pridict(
+        processed_data, int(pridict_days))  # LSTM进行时间序列预测
+    # TODO:存入pridict_result数据库
+    return pridict_result(future_predictions)
+
+
+def pridict_result(df):
+    # 将日期列转换为字符串格式，便于在HTML中直接使用
+    df['Date'] = pd.to_datetime(df['Date']).dt.strftime('%Y-%m-%d')
+    # 准备数据为JSON格式，但这里直接传递DataFrame给模板更直观
+    return render_template('pridict_result.html', data=df.to_dict(orient='records'))
 
 
 # 获取SmsForwarder转发的验证码
