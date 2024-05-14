@@ -42,8 +42,8 @@ def get_goods_info_jd(keywords):
     #     id_list.append(goods.attr('data-sku'))
 
     info_list = list()
-    info = dict()
     for goods in goodslist.items():
+        info = dict()
         info['goods_id'] = goods.attr('data-sku')
         info['image_url'] = goods.find('.p-img img').attr('src')
         text = goods.find('.p-name.p-name-type-2 em').text()

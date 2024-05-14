@@ -5,6 +5,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import selenium.common.exceptions as SE
+from selenium.webdriver.chrome.options import Options
 import time
 import random
 import json
@@ -80,6 +81,8 @@ class Selenium:
     index_url = ''
     search_url = ''
     cookies = list[dict]
+    opt = Options()  # 新建参数对象
+    opt.add_argument("--headless")  # 无头
 
     def __init__(self, login_url, index_url, search_url) -> None:
         self.login_url = login_url
@@ -89,7 +92,7 @@ class Selenium:
 
     def selenium_login(self):
         login_url = self.login_url
-        browser = webdriver.Chrome()
+        browser = webdriver.Chrome(options=self.opt)
         browser.get(url=login_url)
         # time.sleep(30)
 
@@ -190,7 +193,7 @@ class Selenium:
         for keyword in keywords:
             search_url = search_url+keyword+'%20'  # 空格分割关键字
 
-        browser = webdriver.Chrome()
+        browser = webdriver.Chrome(options=self.opt)
         browser.get(index_url)
         # for cookie in self.cookies:
         #     browser.add_cookie(cookie)
@@ -211,14 +214,33 @@ class Selenium:
             })
 
         browser.refresh()
+        browser.maximize_window()
         browser.get(search_url)
-        time.sleep(5)
+        time.sleep(1)
+
+        # 模仿用户缓慢滚动到页面底部
+        last_height = 0
+        while True:
+            # 滚动200px
+            browser.execute_script("window.scrollBy(0,500);")
+            # 等待页面加载新内容
+            time.sleep(0.5)
+            # 计算新的文档高度，如果不再变化，则跳出循环
+            height = browser.execute_script(
+                "return document.documentElement.scrollTop || window.pageYOffset || document.body.scrollTop;")
+            if height == last_height:
+                break
+            last_height = height
+            print(height)
+        time.sleep(0.5)
+
+        res = browser.page_source
         # print(browser.page_source)
         # with open("search_result.html", mode="w", encoding='utf-8', newline='') as f:
         #     f.write(browser.page_source)
         browser.close()
 
-        return 
+        return res
 
 
 if __name__ == '__main__':

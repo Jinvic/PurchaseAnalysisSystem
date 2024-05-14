@@ -210,6 +210,7 @@ def search():
     #         'row_addr': 'https://item.jd.com/100068057171.html'
     #     }
     # ]
+    print(info_list)
     return render_template('search_result.html', info_list=info_list)
 
 
