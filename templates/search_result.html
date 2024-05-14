@@ -135,6 +135,20 @@
         /* 需要确保按钮的外层容器（比如<body>或自定义的<div>）有此样式 */
     }
 </style>
+<style>
+    .days-container {
+        text-align: center;
+    }
+
+    .days-container input[type=Days] {
+        width: 100%;
+        padding: 12px 20px;
+        margin: 8px 0;
+        display: inline-block;
+        border: 1px solid #ccc;
+        box-sizing: border-box;
+    }
+</style>
 {% endblock%}
 {% block content %}
 <form action="{{ url_for('pridict') }}" method="post">
@@ -167,6 +181,12 @@
     <br>
     <div id="pagination" class="pagination">
         <!-- 分页按钮将由JavaScript动态生成 -->
+    </div>
+    <br>
+    <br>
+    <div class="days-container">
+        <label for="Days"><b>输入需要预测的未来天数：</b></label>
+        <input type="number" placeholder="天数" name="Days" min="1" max="365" step="1" required>
     </div>
     <button type="submit" name="submit">提交</button>
 </form>

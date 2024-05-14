@@ -187,6 +187,7 @@ class Selenium:
         # return cookies
         self.cookies = cookies
 
+    # 在电商平台上搜索相关商品
     def selenium_search(self, keywords):
         index_url = self.index_url
         search_url = self.search_url
@@ -231,7 +232,7 @@ class Selenium:
             if height == last_height:
                 break
             last_height = height
-            print(height)
+            # print(height)
         time.sleep(0.5)
 
         res = browser.page_source
@@ -241,6 +242,12 @@ class Selenium:
         browser.close()
 
         return res
+
+    def refresh_cookies(cls):
+        selenium_jd = Selenium(login_url='https://passport.jd.com/new/login.aspx',
+                               index_url='https://www.jd.com',
+                               search_url='https://search.jd.com/Search?keyword=')
+        selenium_jd.selenium_login()
 
 
 if __name__ == '__main__':

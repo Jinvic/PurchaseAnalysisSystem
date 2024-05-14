@@ -3,6 +3,7 @@ from flask_login import LoginManager, UserMixin, login_user, logout_user, login_
 import re
 import os
 import sql_class
+from selenium_class import Selenium
 import pandas as pd
 import Spider
 app = Flask(__name__)
@@ -187,62 +188,44 @@ def history():
     return render_template('history.html', info_list=info_list)
 
 
-# TEST:
+# 搜索功能 接收关键词返回搜索结果
 @app.route('/search', methods=['POST'])
 def search():
     # 使用get方法获取'keywords'字段的值，并去除首尾空白
     keywords_input = request.form.get('keywords', '').strip()
     keywords_list = keywords_input.split()  # 使用split方法按空格分割字符串，得到关键词列表
     info_list = Spider.get_goods_info_jd(keywords_list)
-    # info_list = [
-    #     {
-    #         'image_url': 'https://img13.360buyimg.com/n7/jfs/t1/217829/35/40208/131284/662619bcF69949721/aeb0076a7ec2a215.jpg',
-    #         'title': '北通阿修罗2无线游戏手柄xbox线性扳机震动PC电脑steam电视特斯拉即插即玩双人成行原神胡闹厨房NBA 黑',
-    #         'price': '159.90',
-    #         'goods_id': '4979408',
-    #         'row_addr': 'https://item.jd.com/4979408.html'
-    #     },
-    #     {
-    #         'image_url': 'https://img11.360buyimg.com/n7/jfs/t1/245828/39/6930/120005/66151861F073dc22d/3a43149cd4683822.jpg',
-    #         'title': '北通斯巴达3多模无线游戏手柄xbox蓝牙体感NS霍尔线性扳机switch电脑PC手机电视车机steam小小梦魇原神',
-    #         'price': '239.00',
-    #         'goods_id': '100068057171',
-    #         'row_addr': 'https://item.jd.com/100068057171.html'
-    #     }
-    # ]
-    print(info_list)
+    # print(info_list)
     return render_template('search_result.html', info_list=info_list)
 
 
 # TEST:
 @app.route('/pridict', methods=['POST'])
 def pridict():
-    selected_goods_id = request.form.get('rowSelection')  # 直接获取商品id
-
-    db = sql_class.SQLiteTool('queries.db')
-    query_sql = "SELECT MAX(qid) FROM queries"
-    max_qid = db.query_data(query_sql)[0][0]
-    qid = max_qid+1
+    selected_goods_id = request.form['rowSelection']  # 获取商品id
+    pridict_days = request.form['Days']  # 获取预测天数
+    print(f"goods id: {selected_goods_id}")
+    print(f"pridict days: {pridict_days}")
     if current_user.is_authenticated:
+        # TODO:存入queries数据库
         uid = current_user.get_id()
-    else:
-        uid = None
-    # TODO:存入queries数据库
-    db.close_connection()
+        db = sql_class.SQLiteTool('queries.db')
+        query_sql = "SELECT MAX(qid) FROM queries"
+        max_qid = db.query_data(query_sql)[0][0]
+        qid = max_qid+1
+        db.close_connection()
 
-    if selected_goods_id:
-        print(f"Selected goods id: {selected_goods_id}")
-        # 读取CSV文件
-        df = pd.read_csv('data/processed_data/4979408.csv')
-        # 将日期列转换为字符串格式，便于在HTML中直接使用
-        df['Date'] = pd.to_datetime(df['Date']).dt.strftime('%Y-%m-%d')
-        # 准备数据为JSON格式，但这里直接传递DataFrame给模板更直观
-        return render_template('pridict_result.html', data=df.to_dict(orient='records'))
-    else:
-        print("No row was selected.")
-    # 根据需要返回响应
-    # return redirect(url_for('show_table'))
-    # return selected_goods_id
+    # if selected_goods_id:
+    #     print(f"Selected goods id: {selected_goods_id}")
+    #     print(f"pridict days: {pridict_days}")
+    #     # 读取CSV文件
+    #     df = pd.read_csv('data/processed_data/4979408.csv')
+    #     # 将日期列转换为字符串格式，便于在HTML中直接使用
+    #     df['Date'] = pd.to_datetime(df['Date']).dt.strftime('%Y-%m-%d')
+    #     # 准备数据为JSON格式，但这里直接传递DataFrame给模板更直观
+    #     return render_template('pridict_result.html', data=df.to_dict(orient='records'))
+    # else:
+    #     print("No row was selected.")
 
 
 # 获取SmsForwarder转发的验证码
@@ -276,5 +259,6 @@ def receive_sms():
 
 
 if __name__ == '__main__':
+    # Selenium.refresh_cookies()
     initialize_database()
     app.run(port=port, host=host, debug=True)
