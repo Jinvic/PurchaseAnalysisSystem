@@ -2,6 +2,7 @@ import requests
 from pyquery import PyQuery as pq
 from selenium_class import Selenium
 # import selenium_login
+import sql_class
 import data_process
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -20,30 +21,38 @@ import time
 #     f.write(response.text)
 
 
-def get_goods_id_jd(keywords):
+def get_goods_info_jd(keywords):
     login_url_jd = 'https://passport.jd.com/new/login.aspx'
     index_url_jd = 'https://www.jd.com'
     search_url_jd = 'https://search.jd.com/Search?keyword='
 
     selenium_jd = Selenium(login_url_jd, index_url_jd, search_url_jd)
     # selenium_jd.selenium_login()
-    selenium_jd.selenium_search(keywords)
+    html = selenium_jd.selenium_search(keywords)
     # selenium_login.selenium_search(keywords)
 
     # 解析网页数据
-    with open('search_result.html', 'r', encoding='utf-8') as f:
-        html = f.read()
+    # with open('search_result.html', 'r', encoding='utf-8') as f:
+    #     html = f.read()
+
     doc = pq(html)
     goodslist = doc('#J_goodsList li')
-    id_list = list()
+    # id_list = list()
+    # for goods in goodslist.items():
+    #     id_list.append(goods.attr('data-sku'))
+
+    info_list = list()
+    info = dict()
     for goods in goodslist.items():
-        id_list.append(goods.attr('data-sku'))
-        # print(goods.attr('data-sku'))
+        info['goods_id'] = goods.attr('data-sku')
+        info['image_url'] = goods.find('.p-img img').attr('src')
+        text = goods.find('.p-name.p-name-type-2 em').text()
+        info['title'] = text.replace('\n', '')  # 使用replace方法去掉所有的换行符
+        info['price'] = goods.find('.p-price i').text()
+        info['row_addr'] = 'https://item.jd.com/'+str(info['goods_id'])+'.html'
+        info_list.append(info)
 
-    # for id in id_list:
-    #     print(id)
-
-    return id_list
+    return info_list
 
 
 def get_history_price_page(goods_id):

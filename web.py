@@ -1,5 +1,5 @@
 from flask import Flask, request, session, flash, redirect, url_for, jsonify, render_template
-from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required
+from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 import re
 import os
 import sql_class
@@ -8,8 +8,8 @@ import Spider
 app = Flask(__name__)
 
 # 测试用，实际使用需要更改主机与端口号
-# host = '172.17.151.119'
-host = '192.168.43.135'
+host = '172.17.151.119'
+# host = '192.168.43.135'
 port = '8000'
 
 
@@ -91,9 +91,9 @@ def load_user(uid):
     return User.get_by_id(uid)
 
 
-@login_manager.request_loader
-def request_loader(request):
-    pass
+# @login_manager.request_loader
+# def request_loader(request):
+#     pass
 
 
 # 登录
@@ -107,8 +107,6 @@ def login():
         login_user(user)
         return redirect(url_for('index'))  # 登录成功后重定向
     else:
-        # flash('用户名或密码错误', 'error')
-        # return redirect(url_for('login_page'))
         session['error_msg'] = '用户名或密码错误'
         return redirect(url_for('error'))
 
@@ -170,10 +168,23 @@ def register_page():
     return render_template('register.html')
 
 
-@app.route('/history_page')
-@login_required
-def history_page():
-    return "还没做呢"
+@app.route('/history')
+# @login_required
+def history():
+    if not current_user.is_authenticated:
+        session['error_msg'] = '请先登录'
+        return redirect(url_for('error'))
+    info_list = [
+        {
+            'uid': 1,
+            'qid': 1,
+            'keywords': '北通 手柄',
+            'goods_id': '4979408',
+            'start_date': '2024-03-28',
+            'pridict_days': 30,
+        },
+    ]
+    return render_template('history.html', info_list=info_list)
 
 
 # TEST:
@@ -182,32 +193,42 @@ def search():
     # 使用get方法获取'keywords'字段的值，并去除首尾空白
     keywords_input = request.form.get('keywords', '').strip()
     keywords_list = keywords_input.split()  # 使用split方法按空格分割字符串，得到关键词列表
-    for keyword in keywords_list:
-        print(keyword)
-    # id_list=Spider.get_goods_id_jd(keywords_list)
-    info_list = [
-        {
-            'image_url': 'https://img13.360buyimg.com/n7/jfs/t1/217829/35/40208/131284/662619bcF69949721/aeb0076a7ec2a215.jpg',
-            'title': '北通阿修罗2无线游戏手柄xbox线性扳机震动PC电脑steam电视特斯拉即插即玩双人成行原神胡闹厨房NBA 黑',
-            'price': '159.90',
-            'goods_id': '4979408',
-            'row_addr': 'https://item.jd.com/4979408.html'
-        },
-        {
-            'image_url': 'https://img11.360buyimg.com/n7/jfs/t1/245828/39/6930/120005/66151861F073dc22d/3a43149cd4683822.jpg',
-            'title': '北通斯巴达3多模无线游戏手柄xbox蓝牙体感NS霍尔线性扳机switch电脑PC手机电视车机steam小小梦魇原神',
-            'price': '239.00',
-            'goods_id': '100068057171',
-            'row_addr': 'https://item.jd.com/100068057171.html'
-        }
-    ]
-    return render_template('search_result.html', info=info_list)
+    info_list = Spider.get_goods_info_jd(keywords_list)
+    # info_list = [
+    #     {
+    #         'image_url': 'https://img13.360buyimg.com/n7/jfs/t1/217829/35/40208/131284/662619bcF69949721/aeb0076a7ec2a215.jpg',
+    #         'title': '北通阿修罗2无线游戏手柄xbox线性扳机震动PC电脑steam电视特斯拉即插即玩双人成行原神胡闹厨房NBA 黑',
+    #         'price': '159.90',
+    #         'goods_id': '4979408',
+    #         'row_addr': 'https://item.jd.com/4979408.html'
+    #     },
+    #     {
+    #         'image_url': 'https://img11.360buyimg.com/n7/jfs/t1/245828/39/6930/120005/66151861F073dc22d/3a43149cd4683822.jpg',
+    #         'title': '北通斯巴达3多模无线游戏手柄xbox蓝牙体感NS霍尔线性扳机switch电脑PC手机电视车机steam小小梦魇原神',
+    #         'price': '239.00',
+    #         'goods_id': '100068057171',
+    #         'row_addr': 'https://item.jd.com/100068057171.html'
+    #     }
+    # ]
+    return render_template('search_result.html', info_list=info_list)
 
 
 # TEST:
 @app.route('/pridict', methods=['POST'])
 def pridict():
     selected_goods_id = request.form.get('rowSelection')  # 直接获取商品id
+
+    db = sql_class.SQLiteTool('queries.db')
+    query_sql = "SELECT MAX(qid) FROM queries"
+    max_qid = db.query_data(query_sql)[0][0]
+    qid = max_qid+1
+    if current_user.is_authenticated:
+        uid = current_user.get_id()
+    else:
+        uid = None
+    # TODO:存入queries数据库
+    db.close_connection()
+
     if selected_goods_id:
         print(f"Selected goods id: {selected_goods_id}")
         # 读取CSV文件

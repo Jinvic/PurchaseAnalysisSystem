@@ -213,10 +213,12 @@ class Selenium:
         browser.refresh()
         browser.get(search_url)
         time.sleep(5)
-        print(browser.page_source)
-        with open("search_result.html", mode="w", encoding='utf-8', newline='') as f:
-            f.write(browser.page_source)
+        # print(browser.page_source)
+        # with open("search_result.html", mode="w", encoding='utf-8', newline='') as f:
+        #     f.write(browser.page_source)
         browser.close()
+
+        return 
 
 
 if __name__ == '__main__':

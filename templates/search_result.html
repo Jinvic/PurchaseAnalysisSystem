@@ -1,84 +1,146 @@
-<!DOCTYPE html>
-<html lang="zh">
+{% extends "navigator.html" %}
+{% block title %}搜索结果{% endblock %}
+{% block style %}
+<style>
+    body {
+        font-family: Arial, sans-serif;
+    }
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>搜索结果</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-        }
+    .table-container table {
+        width: 100%;
+        border-collapse: collapse;
+    }
 
-        .navbar {
-            background-color: #333;
-            overflow: hidden;
-            position: sticky;
-            top: 0;
-            width: 100%;
-        }
+    .table-container .table-title {
+        font-size: 32px;
+        font-weight: bold;
+        color: #333;
+        /* 文字颜色 */
+        margin-bottom: 10px;
+        /* 与表格之间的间距 */
+        text-align: center;
+        /* 文字居中*/
+    }
 
-        .navbar a {
-            float: left;
-            display: block;
-            color: white;
-            text-align: center;
-            padding: 14px 16px;
-            text-decoration: none;
-        }
+    .table-container th,
+    td {
+        padding: 15px;
+        text-align: left;
+        border-bottom: 1px solid #ddd;
+    }
 
-        .navbar a.right {
-            float: right;
-        }
+    .table-container th {
+        background-color: #f2f2f2;
+        font-weight: bold;
+    }
 
-        .search-container {
-            text-align: center;
-            padding: 20px;
-        }
+    .table-container tr:hover {
+        background-color: #f5f5f5;
+    }
 
-        .search-container input[type=text] {
-            border: 2px solid #ccc;
-            border-radius: 4px;
-            font-size: 16px;
-            padding: 12px 20px;
-            width: 50%;
-        }
+    .table-container img {
+        max-width: 100px;
+        height: auto;
+        margin: 5px;
+    }
 
-        .search-container .search_btn {
-            background: #e03024;
-            cursor: pointer;
-            height: 45px;
-            width: 45px;
-        }
-    </style>
-    <style>
+    button[type=submit] {
+        display: block;
+        margin: 20px auto;
+        padding: 10px 20px;
+        font-size: 16px;
+        color: white;
+        background-color: #007BFF;
+        border: none;
+        cursor: pointer;
+        border-radius: 5px;
+    }
+
+    button:hover {
+        background-color: #0056b3;
+    }
+
+    @media screen and (max-width: 600px) {
+
         table,
+        thead,
+        tbody,
         th,
-        td {
-            border: 1px solid black;
-            border-collapse: collapse;
+        td,
+        tr {
+            display: block;
         }
 
-        th,
-        td {
-            padding: 15px;
-            text-align: left;
+        thead tr {
+            position: absolute;
+            top: -9999px;
+            left: -9999px;
         }
-    </style>
-</head>
 
-<body>
+        tr {
+            margin-bottom: 20px;
+        }
 
-    <div class="navbar">
-        <a href="#home">首页</a>
-        <a href="#history">历史记录</a>
-        <a class="right" href="#login">登录</a>
-    </div>
+        td {
+            border: none;
+            border-bottom: 1px solid #ddd;
+            position: relative;
+            padding-left: 50%;
+        }
 
-    <form action="{{ url_for('pridict') }}" method="post">
-        <table>
+        td:before {
+            position: absolute;
+            top: 6px;
+            left: 6px;
+            width: 45%;
+            padding-right: 10px;
+            white-space: nowrap;
+        }
+
+        td:nth-of-type(1):before {
+            content: "选择";
+        }
+
+        td:nth-of-type(2):before {
+            content: "商品图";
+        }
+
+        td:nth-of-type(3):before {
+            content: "商品名";
+        }
+
+        td:nth-of-type(4):before {
+            content: "当前价格";
+        }
+
+        td:nth-of-type(5):before {
+            content: "商品页链接";
+        }
+    }
+</style>
+<style>
+    /* 悬浮效果 */
+    .pagination button:hover {
+        background-color: #0056b3;
+        /* 鼠标悬停时的背景颜色 */
+        color: #ffffff;
+        /* 保持文字颜色不变，或根据需要调整 */
+    }
+
+    /* 使按钮水平居中 */
+    .pagination {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        /* 需要确保按钮的外层容器（比如<body>或自定义的<div>）有此样式 */
+    }
+</style>
+{% endblock%}
+{% block content %}
+<form action="{{ url_for('pridict') }}" method="post">
+    <div class="table-container">
+        <p class="table-title">搜索结果如下：</p>
+        <!-- <table>
             <tr>
                 <th></th>
                 <th>商品图</th>
@@ -86,7 +148,7 @@
                 <th>当前价格</th>
                 <th>商品页链接</th>
             </tr>
-            {% for item in info %}
+            {% for item in info_list %}
             <tr>
                 <td><input type="radio" name="rowSelection" value="{{ item.goods_id }}" {% if loop.first %}checked{%
                         endif %}></td>
@@ -96,11 +158,91 @@
                 <td>{{ item.row_addr }}</td>
             </tr>
             {% endfor %}
+        </table> -->
+        <table id="dataTable">
+            <!-- 这里将由JavaScript动态填充数据 -->
+            <tbody></tbody>
         </table>
-        <br>
-        <button type="submit" name="submit">提交</button>
-    </form>
+    </div>
+    <br>
+    <div id="pagination" class="pagination">
+        <!-- 分页按钮将由JavaScript动态生成 -->
+    </div>
+    <button type="submit" name="submit">提交</button>
+</form>
 
-</body>
+<script>
+    // info是从后端获取的数据
+    // var info = [{...}, {...}, ...]; // 数据数组
+    var info = {{ info_list| tojson }};
+    console.log(info)
+    var itemsPerPage = 5; // 每页显示的条目数
+    var currentPage = 1;
 
-</html>
+    function showPage(page) {
+        var start = (page - 1) * itemsPerPage;
+        var end = start + itemsPerPage;
+        var tableBody = document.getElementById('dataTable').getElementsByTagName('tbody')[0];
+        // console.log(tableBody)
+        tableBody.innerHTML = ''; // 清空现有内容
+        tableBody.insertRow().innerHTML = '<tr><th>选择</th><th>商品图</th><th>商品名</th><th>当前价格</th><th>商品页链接</th></tr>'
+
+        for (var i = start; i < end && i < info.length; i++) {
+            var row = tableBody.insertRow();
+            // 这里简化处理，实际应根据需要创建单元格并填充数据
+            row.insertCell().innerHTML = '<input type="radio" name="rowSelection" value="' + info[i].goods_id + '">';
+            row.insertCell().innerHTML = '<img src="' + info[i].image_url + '" alt="' + info[i].goods_id + '">';
+            row.insertCell().innerHTML = info[i].title;
+            row.insertCell().innerHTML = info[i].price;
+            row.insertCell().innerHTML = info[i].row_addr;
+        }
+
+        var radioButton = document.getElementsByName('rowSelection')[0];
+        if (radioButton) {
+            radioButton.checked = true;
+        }
+
+        updatePaginationButtons();
+    }
+
+    function updatePaginationButtons() {
+        var totalPages = Math.ceil(info.length / itemsPerPage);
+        var paginationDiv = document.getElementById('pagination');
+        // console.log(paginationDiv)
+        paginationDiv.innerHTML = ''; // 清除现有按钮
+
+        for (var i = 1; i <= totalPages; i++) {
+            var button = document.createElement('button');
+            button.innerText = i;
+            button.class = 'pagination';
+            button.addEventListener('click', function () {
+                currentPage = parseInt(this.innerText);
+                showPage(currentPage);
+            });
+            if (i === currentPage) {
+                button.classList.add('active');
+            }
+            paginationDiv.appendChild(button);
+        }
+    }
+
+    // 初始化显示第一页
+    showPage(currentPage);
+
+
+</script>
+<script>
+    //无论点击哪里都选中当前行
+    document.getElementById('dataTable').addEventListener('click', function (event) {
+        var target = event.target; // 获得点击事件的目标元素
+        var row = target.closest('tr'); // 查找最近的tr祖先元素，即点击所在的行
+
+        if (row) { // 确保点击的是表格内的元素
+            var radioButton = row.querySelector('input[type=radio]'); // 在当前行查找单选按钮
+            if (radioButton) {
+                radioButton.checked = true; // 选中该单选按钮
+            }
+        }
+    });
+</script>
+{% endblock %}

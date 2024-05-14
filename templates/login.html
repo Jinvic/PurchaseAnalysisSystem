@@ -40,7 +40,7 @@
     opacity: 0.8;
   }
 
-  a {
+  .container a {
     display: block;
     text-align: center;
     text-decoration: none;
@@ -51,6 +51,13 @@
 {% endblock%}
 
 {% block content %}
+
+<br>
+<br>
+<br>
+<br>
+<br>
+
 <main class="container">
   <h2>登录</h2>
   <form action="/login" method="post">
@@ -59,7 +66,7 @@
 
     <label for="password"><b>密码</b></label>
     <input type="password" placeholder="Enter Password" name="password" required>
-    {% with messages = get_flashed_messages() %}
+    <!-- {% with messages = get_flashed_messages() %}
     {% if messages %}
     <ul class=flashes>
       {% for message in messages %}
@@ -67,7 +74,7 @@
       {% endfor %}
     </ul>
     {% endif %}
-    {% endwith %}
+    {% endwith %} -->
     <button type="submit">登录</button>
   </form>
   <p>新用户? <a href="/register_page">马上注册</a></p>
