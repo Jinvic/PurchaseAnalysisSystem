@@ -2,6 +2,10 @@
 {% block title %}错误{% endblock %}
 {% block style %}
 <style scoped>
+    body {
+        background-color: #f9f9f9;
+    }
+
     .error-container {
         display: flex;
         justify-content: center;
@@ -11,19 +15,26 @@
     .error-card {
         padding: 2rem;
         text-align: center;
-        background-color: #fff;
+        background-color: #f9f9f9;
         border-radius: 5px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        /* box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); */
+        /* width: 60%; */
     }
 
     .error-code {
-        color: #D85030;
-        font-size: 3em;
+        /* color: #D85030; */
+        color: #293B49;
+        font-size: 5em;
         margin-bottom: 0.5em;
     }
 
+    .error-pic {
+        width: 80%; 
+        height: auto;
+    }
+
     .error-message {
-        font-size: 1.2em;
+        font-size: 1.5em;
         line-height: 1.5;
         color: #333;
     }
@@ -37,6 +48,7 @@
         border-radius: 3px;
         margin-top: 1em;
         transition: background-color 0.3s ease;
+        font-size: 1.2em;
     }
 
     .back:hover {
@@ -47,15 +59,10 @@
 
 {% block content %}
 
-<br>
-<br>
-<br>
-<br>
-<br>
-
 <main class="error-container">
     <div class="error-card">
-        <h1 class="error-code">错误!</h1>
+        <img src="{{ url_for('static', filename='picture/error.png') }}" class="error-pic">
+        <h1 class="error-code">ERROR!</h1>
         <p class="error-message">{{ msg }}</p>
         <a href="javascript:history.back()" class="back">返回上一页</a>
     </div>

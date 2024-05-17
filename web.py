@@ -13,8 +13,8 @@ from LSTM import LSTM_predict
 app = Flask(__name__)
 
 # 测试用，实际使用需要更改主机与端口号
-host = '172.17.151.119'
-# host = '192.168.43.135'
+# host = '172.17.151.119'  # 校园网
+host = '192.168.43.135'  # 热点
 port = '8000'
 
 
@@ -293,7 +293,8 @@ def predict():
 
 def predict_result(df1, df2):
     # 将日期列转换为字符串格式，便于在HTML中直接使用
-    # df['date'] = pd.to_datetime(df['date']).dt.strftime('%Y-%m-%d')
+    df1['date'] = pd.to_datetime(df1['date']).dt.strftime('%Y-%m-%d')
+    df2['date'] = pd.to_datetime(df2['date']).dt.strftime('%Y-%m-%d')
     # 准备数据为JSON格式，但这里直接传递DataFrame给模板更直观
     return render_template('predict_result.html', data1=df1.to_dict(orient='records'), data2=df2.to_dict(orient='records'))
 
@@ -309,9 +310,16 @@ def receive_sms():
 
     if message:
         # 处理短信内容,通过正则匹配6位数字验证码
-        pattern = r"【京东】(\d{6})"
+        # pattern = r"【京东】(\d{6})|【购物党】.*(\d{4})"
+        pattern = r"【购物党】.*(\d{4})"
+        # pattern_gwd = r""
         match = re.search(pattern, message)
-        verification_code = match.group(1)
+        verification_code = None
+        if match.group(1):  # 检查6位数的捕获组
+            verification_code = match.group(1)
+        else:  # 如果6位数的捕获组未匹配到，则返回4位数的捕获组
+            verification_code = match.group(2)
+        # verification_code = match.group(1)
         # 正则匹配接收信息的号码
         pattern = r"\+86(\d{11})"
         match = re.search(pattern, message)

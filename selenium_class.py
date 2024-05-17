@@ -306,11 +306,13 @@ class Selenium:
                                index_url='https://www.jd.com',
                                search_url='https://search.jd.com/Search?keyword=')
         selenium_jd.selenium_login()
+        selenium_jd.selenium_login_gwd()
 
 
 if __name__ == '__main__':
-    selenium_jd = Selenium(login_url='https://passport.jd.com/new/login.aspx',
-                           index_url='https://www.jd.com',
-                           search_url='https://search.jd.com/Search?keyword=')
-    selenium_jd.selenium_login()
-    selenium_jd.selenium_search(['北通', '手柄'])
+    # selenium_jd = Selenium(login_url='https://passport.jd.com/new/login.aspx',
+    #                        index_url='https://www.jd.com',
+    #                        search_url='https://search.jd.com/Search?keyword=')
+    # selenium_jd.selenium_login()
+    # selenium_jd.selenium_search(['北通', '手柄'])
+    Selenium.selenium_login_gwd()
