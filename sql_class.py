@@ -38,6 +38,20 @@ class SQLiteTool:
         except Exception as e:
             print(f"Error inserting data: {e}")
 
+    def insert_many_data(self, insert_sql, data_tuple):
+        """
+        插入大量数据
+        :param insert_sql: 插入数据的SQL语句模板
+        :param data_tuple: 插入数据的元组
+        :return: None
+        """
+        try:
+            self.cursor.executemany(insert_sql, data_tuple)
+            self.conn.commit()
+            print("Data inserted successfully.")
+        except Exception as e:
+            print(f"Error inserting data: {e}")
+
     def query_data(self, query_sql):
         """
         查询数据
@@ -215,8 +229,8 @@ def queries_db_init():
         qid INTEGER PRIMARY KEY,
         uid INTEGER NOT NULL,
         goods_id INTEGER NOT NULL,
-        start_date DATE NOT NULL,
-        pridict_days INTEGER NOT NULL
+        query_date DATE NOT NULL,
+        predict_days INTEGER NOT NULL
     );
     '''
     db.create_table(create_table_sql)
@@ -224,7 +238,60 @@ def queries_db_init():
     insert_sql = "INSERT INTO queries VALUES (?, ?, ?, ?, ?)"
     current_date = datetime.now().strftime('%Y-%m-%d')
     # 占位测试用
-    db.insert_data(insert_sql, (0, 0, 0, current_date, 0))
+    db.insert_data(insert_sql, (1, 0, 4979408, current_date, 30))
+
+    # 关闭连接
+    db.close_connection()
+
+
+def train_result_db_init():
+    # 创建数据库
+    db = SQLiteTool("train_result.db")
+    create_table_sql = '''
+    CREATE TABLE IF NOT EXISTS train_result (
+    id INTEGER PRIMARY KEY AUTOINCREMENT, 
+    qid INTEGER NOT NULL, 
+    date DATE NOT NULL, 
+    actual_price REAL NOT NULL,
+    predict_price REAL NOT NULL
+    );
+    '''
+    db.create_table(create_table_sql)
+
+    # insert_sql = '''INSERT INTO train_result (
+    #     qid, 
+    #     date, 
+    #     actual_price, 
+    #     predict_price) 
+    #     VALUES (?, ?, ?, ?)'''
+    # current_date = datetime.now().strftime('%Y-%m-%d')
+    # # 占位测试用
+    # db.insert_data(insert_sql, (0,  current_date, 0, 0))
+
+    # 关闭连接
+    db.close_connection()
+
+def predict_result_db_init():
+    # 创建数据库
+    db = SQLiteTool("predict_result.db")
+    create_table_sql = '''
+    CREATE TABLE IF NOT EXISTS predict_result (
+    id INTEGER PRIMARY KEY AUTOINCREMENT, 
+    qid INTEGER NOT NULL, 
+    date DATE NOT NULL, 
+    predict_price REAL NOT NULL
+    );
+    '''
+    db.create_table(create_table_sql)
+
+    insert_sql = '''INSERT INTO predict_result (
+        qid, 
+        date, 
+        predict_price) 
+        VALUES (?, ?, ?)'''
+    current_date = datetime.now().strftime('%Y-%m-%d')
+    # 占位测试用
+    db.insert_data(insert_sql, (0, current_date, 0))
 
     # 关闭连接
     db.close_connection()
@@ -266,4 +333,6 @@ if __name__ == '__main__':
     # accounts_db_init()
     # users_db_init()
     queries_db_init()
+    # train_result_db_init()
+    # predict_result_db_init()
     # test()

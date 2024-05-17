@@ -2,13 +2,14 @@ from flask import Flask, request, session, flash, redirect, url_for, jsonify, re
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 import re
 import os
+import json
 import sql_class
 from selenium_class import Selenium
 import pandas as pd
 from datetime import datetime
 import Spider
 from data_process import data_process
-from LSTM import LSTM_pridict
+from LSTM import LSTM_predict
 app = Flask(__name__)
 
 # 测试用，实际使用需要更改主机与端口号
@@ -22,6 +23,8 @@ def initialize_database():
     sql_class.accounts_db_init()
     sql_class.users_db_init()
     sql_class.queries_db_init()
+    sql_class.train_result_db_init()
+    sql_class.predict_result_db_init()
 
 
 # flask-login配置
@@ -179,15 +182,58 @@ def history():
     if not current_user.is_authenticated:
         session['error_msg'] = '请先登录'
         return redirect(url_for('error'))
-    info_list = [
-        {
-            'uid': 1,
-            'qid': 1,
-            'goods_id': '4979408',
-            'start_date': '2024-03-28',
-            'pridict_days': 30,
-        },
-    ]
+    # info_list = [
+    #     {
+    #         'uid': 1,
+    #         'qid': 1,
+    #         'goods_id': '4979408',
+    #         'query_date': '2024-03-28',
+    #         'predict_days': 30,
+    #     },
+    # ]
+    uid = current_user.get_id()
+    db = sql_class.SQLiteTool('queries.db')
+    query_sql = f"SELECT * FROM queries WHERE uid = {uid}"
+    res = db.query_data(query_sql)
+    db.close_connection()
+    info_list = []
+    for row in res:
+        data_dict = {
+            "qid": row[0],
+            "uid": row[1],
+            "goods_id": row[2],
+            "query_date": row[3],
+            "predict_days": row[4]
+        }
+        info_list.append(data_dict)
+    # 转换为JSON字符串
+    # info_list = json.dumps(info_list, ensure_ascii=False, indent=4)
+    return render_template('history.html', info_list=info_list)
+
+
+@app.route('/predict_history')
+# @login_required
+def predict_history():
+    if not current_user.is_authenticated:
+        session['error_msg'] = '请先登录'
+        return redirect(url_for('error'))
+    qid = request.form['rowSelection']
+    uid = current_user.get_id()
+    db = sql_class.SQLiteTool('queries.db')
+    query_sql = f"SELECT * FROM queries WHERE uid = {uid}"
+    res = db.query_data(query_sql)
+    info_list = []
+    for row in res:
+        data_dict = {
+            "qid": row[0],
+            "uid": row[1],
+            "goods_id": row[2],
+            "start_date ": row[3],
+            "predict_days ": row[4]
+        }
+        info_list.append(data_dict)
+    # 转换为JSON字符串
+    info_list = json.dumps(info_list, ensure_ascii=False, indent=4)
     return render_template('history.html', info_list=info_list)
 
 
@@ -203,12 +249,12 @@ def search():
 
 
 # TEST:
-@app.route('/pridict', methods=['POST'])
-def pridict():
+@app.route('/predict', methods=['POST'])
+def predict():
     selected_goods_id = request.form['rowSelection']  # 获取商品id
-    pridict_days = request.form['Days']  # 获取预测天数
+    predict_days = request.form['Days']  # 获取预测天数
     print(f"goods id: {selected_goods_id}")
-    print(f"pridict days: {pridict_days}")
+    print(f"predict days: {predict_days}")
     if current_user.is_authenticated:
         # TODO:存入queries数据库
         uid = current_user.get_id()
@@ -217,37 +263,37 @@ def pridict():
         max_qid = db.query_data(query_sql)[0][0]
         qid = max_qid+1
         insert_sql = "INSERT INTO queries VALUES (?, ?, ?, ?, ?)"
-        current_date = datetime.now().strftime('%Y-%m-%d', pridict_days)
+        current_date = datetime.now().strftime('%Y-%m-%d', predict_days)
         db.insert_data(
             insert_sql, (qid, uid, selected_goods_id, current_date, 0))
         db.close_connection()
 
     # if selected_goods_id:
     #     print(f"Selected goods id: {selected_goods_id}")
-    #     print(f"pridict days: {pridict_days}")
+    #     print(f"predict days: {predict_days}")
     #     # 读取CSV文件
     #     df = pd.read_csv('data/processed_data/4979408.csv')
     #     # 将日期列转换为字符串格式，便于在HTML中直接使用
     #     df['Date'] = pd.to_datetime(df['Date']).dt.strftime('%Y-%m-%d')
     #     # 准备数据为JSON格式，但这里直接传递DataFrame给模板更直观
-    #     return render_template('pridict_result.html', data=df.to_dict(orient='records'))
+    #     return render_template('predict_result.html', data=df.to_dict(orient='records'))
     # else:
     #     print("No row was selected.")
 
     # 获取原始数据
     price_list = Spider.get_history_price(selected_goods_id)
     processed_data = data_process(price_list)  # 数据处理
-    future_predictions = LSTM_pridict(
-        processed_data, int(pridict_days))  # LSTM进行时间序列预测
-    # TODO:存入pridict_result数据库
-    return pridict_result(future_predictions)
+    future_predictions = LSTM_predict(
+        processed_data, int(predict_days), qid)  # LSTM进行时间序列预测
+
+    return predict_result(future_predictions)
 
 
-def pridict_result(df):
+def predict_result(df):
     # 将日期列转换为字符串格式，便于在HTML中直接使用
     df['Date'] = pd.to_datetime(df['Date']).dt.strftime('%Y-%m-%d')
     # 准备数据为JSON格式，但这里直接传递DataFrame给模板更直观
-    return render_template('pridict_result.html', data=df.to_dict(orient='records'))
+    return render_template('predict_result.html', data=df.to_dict(orient='records'))
 
 
 # 获取SmsForwarder转发的验证码

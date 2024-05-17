@@ -120,27 +120,25 @@
 </style>
 {% endblock%}
 {% block content %}
-<form action="{{ url_for('pridict_history') }}" method="post">
+<form action="{{ url_for('predict_history') }}" method="post">
     <div class="table-container">
         <p class="table-title">历史记录如下：</p>
         <table>
             <tr>
                 <th></th>
-                <th>用户id</th>
                 <th>查询id</th>
                 <th>商品id</th>
-                <th>起始日期</th>
+                <th>查询日期</th>
                 <th>预测天数</th>
             </tr>
             {% for item in info_list %}
             <tr>
                 <td><input type="radio" name="rowSelection" value="{{ item.qid }}" {% if loop.first %}checked{%
                         endif %}></td>
-                <td>{{ item.uid }}</td>
                 <td>{{ item.qid }}</td>
                 <td>{{ item.goods_id }}</td>
-                <td>{{ item.start_date }}</td>
-                <td>{{ item.pridict_days }}</td>
+                <td>{{ item.query_date }}</td>
+                <td>{{ item.predict_days }}</td>
             </tr>
             {% endfor %}
         </table>
