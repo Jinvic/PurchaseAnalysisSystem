@@ -74,7 +74,7 @@ def get_history_price_page(goods_id):
     script = 'Object.defineProperty(navigator, "webdriver", { get: () => false, });'
     browser.execute_script(script=script)
     
-    browser.get('https://www.gwdang.com/')
+    # browser.get('https://www.gwdang.com/')
 
     with open('cookies_gwd.txt', 'r') as file:
         cookies_json = file.read()
@@ -94,10 +94,10 @@ def get_history_price_page(goods_id):
     browser.maximize_window()
     browser.get('https://www.gwdang.com/v2/trend')
 
-    input = browser.find_element(By.CSS_SELECTOR, '#url')
-    button = browser.find_element(By.CSS_SELECTOR, '#search-button')
-    input.send_keys(goods_url)
-    input.send_keys(Keys.ENTER)
+    # input = browser.find_element(By.CSS_SELECTOR, '#url')
+    # button = browser.find_element(By.CSS_SELECTOR, '#search-button')
+    # input.send_keys(goods_url)
+    # input.send_keys(Keys.ENTER)
 
     # browser = webdriver.Chrome()
     # browser.maximize_window()
@@ -106,26 +106,26 @@ def get_history_price_page(goods_id):
     # browser.execute_script(script=script)
     # browser.get('https://www.gwdang.com/v2/trend?from=search')
 
-    # # 等待页面加载完成
-    # WebDriverWait(browser, 10).until(
-    #     EC.presence_of_element_located((By.ID, 'url')))
-    # input = browser.find_element(By.CSS_SELECTOR, '#url')
-    # button = browser.find_element(By.CSS_SELECTOR, '#search-button')
-    # input.send_keys(goods_url)
-    # # input.send_keys(Keys.ENTER)
-    # # time.sleep(0.2)
-    # # 设定动作链
-    # action = webdriver.ActionChains(browser)
-    # # 跳过第一次
-    # action.send_keys(Keys.TAB).perform()
+    # 等待页面加载完成
+    WebDriverWait(browser, 10).until(
+        EC.presence_of_element_located((By.ID, 'url')))
+    input = browser.find_element(By.CSS_SELECTOR, '#url')
+    button = browser.find_element(By.CSS_SELECTOR, '#search-button')
+    input.send_keys(goods_url)
+    # input.send_keys(Keys.ENTER)
     # time.sleep(0.2)
-    # action.send_keys(Keys.TAB).perform()
-    # time.sleep(0.2)
-    # # 循环一次
-    # while (button != browser.switch_to.active_element):
-    #     action.send_keys(Keys.TAB).perform()
-    #     time.sleep(0.2)
-    # action.send_keys(Keys.ENTER).perform()
+    # 设定动作链
+    action = webdriver.ActionChains(browser)
+    # 跳过第一次
+    action.send_keys(Keys.TAB).perform()
+    time.sleep(0.2)
+    action.send_keys(Keys.TAB).perform()
+    time.sleep(0.2)
+    # 循环一次
+    while (button != browser.switch_to.active_element):
+        action.send_keys(Keys.TAB).perform()
+        time.sleep(0.2)
+    action.send_keys(Keys.ENTER).perform()
 
     # 等待页面加载完成
     WebDriverWait(browser, 15).until(
@@ -181,4 +181,6 @@ def get_history_price(goods_id):
 
 # DEBUG:
 if __name__ == '__main__':
-    get_history_price(str(4979408))
+    # get_history_price(str(4979408))
+    res=get_history_price_page(str(100013116380))
+    # print(res)

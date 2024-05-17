@@ -83,7 +83,7 @@ class Selenium:
     cookies = list[dict]
     
     opt = Options()  # 新建参数对象
-    opt.add_argument("--headless")  # 无头
+    # opt.add_argument("--headless")  # 无头
 
     def __init__(self, login_url, index_url, search_url) -> None:
         self.login_url = login_url

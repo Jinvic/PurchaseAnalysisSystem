@@ -211,30 +211,30 @@ def history():
     return render_template('history.html', info_list=info_list)
 
 
-@app.route('/predict_history')
+@app.route('/predict_history', methods=['POST'])
 # @login_required
 def predict_history():
     if not current_user.is_authenticated:
         session['error_msg'] = '请先登录'
         return redirect(url_for('error'))
+
     qid = request.form['rowSelection']
-    uid = current_user.get_id()
-    db = sql_class.SQLiteTool('queries.db')
-    query_sql = f"SELECT * FROM queries WHERE uid = {uid}"
-    res = db.query_data(query_sql)
-    info_list = []
-    for row in res:
-        data_dict = {
-            "qid": row[0],
-            "uid": row[1],
-            "goods_id": row[2],
-            "start_date ": row[3],
-            "predict_days ": row[4]
-        }
-        info_list.append(data_dict)
-    # 转换为JSON字符串
-    info_list = json.dumps(info_list, ensure_ascii=False, indent=4)
-    return render_template('history.html', info_list=info_list)
+
+    # 取出训练结果
+    db = sql_class.SQLiteTool('train_result.db')
+    query_sql = f"SELECT date, actual_price, predict_price FROM train_result WHERE qid = {qid}"
+    # res = db.query_data(query_sql)
+    df1 = pd.read_sql_query(query_sql, db.conn)
+    db.close_connection()
+
+    # 取出预测结果
+    db = sql_class.SQLiteTool('predict_result.db')
+    query_sql = f"SELECT date, predict_price FROM predict_result WHERE qid = {qid}"
+    # res = db.query_data(query_sql)
+    df2 = pd.read_sql_query(query_sql, db.conn)
+    db.close_connection()
+
+    return predict_result(df1, df2)
 
 
 # 搜索功能 接收关键词返回搜索结果
@@ -263,10 +263,12 @@ def predict():
         max_qid = db.query_data(query_sql)[0][0]
         qid = max_qid+1
         insert_sql = "INSERT INTO queries VALUES (?, ?, ?, ?, ?)"
-        current_date = datetime.now().strftime('%Y-%m-%d', predict_days)
+        current_date = datetime.now().strftime('%Y-%m-%d')
         db.insert_data(
-            insert_sql, (qid, uid, selected_goods_id, current_date, 0))
+            insert_sql, (qid, uid, selected_goods_id, current_date, predict_days))
         db.close_connection()
+    else:
+        qid = None
 
     # if selected_goods_id:
     #     print(f"Selected goods id: {selected_goods_id}")
@@ -283,17 +285,17 @@ def predict():
     # 获取原始数据
     price_list = Spider.get_history_price(selected_goods_id)
     processed_data = data_process(price_list)  # 数据处理
-    future_predictions = LSTM_predict(
+    train_result, future_predictions = LSTM_predict(
         processed_data, int(predict_days), qid)  # LSTM进行时间序列预测
 
-    return predict_result(future_predictions)
+    return predict_result(train_result, future_predictions)
 
 
-def predict_result(df):
+def predict_result(df1, df2):
     # 将日期列转换为字符串格式，便于在HTML中直接使用
-    df['Date'] = pd.to_datetime(df['Date']).dt.strftime('%Y-%m-%d')
+    # df['date'] = pd.to_datetime(df['date']).dt.strftime('%Y-%m-%d')
     # 准备数据为JSON格式，但这里直接传递DataFrame给模板更直观
-    return render_template('predict_result.html', data=df.to_dict(orient='records'))
+    return render_template('predict_result.html', data1=df1.to_dict(orient='records'), data2=df2.to_dict(orient='records'))
 
 
 # 获取SmsForwarder转发的验证码

@@ -1,84 +1,99 @@
-<!DOCTYPE html>
-<html lang="zh">
+{% extends "navigator.html" %}
+{% block title %}预测结果{% endblock %}
+{% block style %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom"></script>
+{% endblock%}
+{% block content %}
+<div style="width: 1200px; height: 600px; overflow: auto; margin:auto">
+    <canvas id="train_result" style="display:block;"></canvas>
+</div>
+<div style="width: 1200px; height: 600px; overflow: auto; margin:auto">
+    <canvas id="predict_result" style="display:block;"></canvas>
+</div>
+<script>
+    // 使用Jinja2语法获取从后端传来的数据
+    var data1 = {{ data1| tojson | safe }};
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>预测结果</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-        }
+    // 数据准备
+    const labels1 = data1.map(item => item['date']);
+    const actual_price = data1.map(item => parseFloat(item['actual_price']));
+    const predict_price = data1.map(item => parseFloat(item['predict_price']));
 
-        .navbar {
-            background-color: #333;
-            overflow: hidden;
-            position: sticky;
-            top: 0;
-            width: 100%;
-        }
-
-        .navbar a {
-            float: left;
-            display: block;
-            color: white;
-            text-align: center;
-            padding: 14px 16px;
-            text-decoration: none;
-        }
-
-        .navbar a.right {
-            float: right;
-        }
-    </style>
-</head>
-
-<body>
-
-    <div class="navbar">
-        <a href="#home">预测结果</a>
-        <a href="#history">历史记录</a>
-        <a class="right" href="#login">登录</a>
-    </div>
-
-    <div style="width: 800px; height: 400px; overflow: auto; margin:auto">
-        <canvas id="myChart" style="display:block;"></canvas>
-    </div>
-    <script>
-        // 使用Jinja2语法获取从后端传来的数据
-        var data = {{ data| tojson | safe }};
-
-        // 数据准备
-        const labels = data.map(item => item['Date']);
-        const prices = data.map(item => parseFloat(item['Predicted_Future_Price']));
-
-        // 绘制折线图
-        const ctx = document.getElementById('myChart').getContext('2d');
-        new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: '未来价格',
-                    data: prices,
+    // 绘制折线图
+    const ctx1 = document.getElementById('train_result').getContext('2d');
+    new Chart(ctx1, {
+        type: 'line',
+        data: {
+            labels: labels1,
+            datasets: [
+                {
+                    label: '实际价格',
+                    data: actual_price,
+                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                },
+                {
+                    label: '预测价格',
+                    data: predict_price,
                     backgroundColor: 'rgba(255, 99, 132, 0.2)',
                     borderColor: 'rgba(255, 99, 132, 1)',
                     borderWidth: 1
-                }]
-            },
-            options: {
-                scales: {
-                    y: {
-                        beginAtZero: true
-                    }
+                }
+            ]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true
                 }
             }
-        });
-    </script>
+        }
+        // plugins: [
+        //     {
+        //         zoom: {
+        //             pan: {
+        //                 enabled: true,
+        //                 mode: 'x'
+        //             },
+        //             zoom: {
+        //                 enabled: true,
+        //                 mode: 'x'
+        //             }
+        //         }
+        //     }
+        // ]
+    });
 
-</body>
+    // 使用Jinja2语法获取从后端传来的数据
+    data2 = {{ data2 | tojson | safe }};
 
-</html>
+    // 数据准备
+    const labels2 = data2.map(item => item['date']);
+    const prices = data2.map(item => parseFloat(item['predict_price']));
+
+    // 绘制折线图
+    ctx2 = document.getElementById('predict_result').getContext('2d');
+    new Chart(ctx2, {
+        type: 'line',
+        data: {
+            labels: labels2,
+            datasets: [{
+                label: '未来价格',
+                data: prices,
+                backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                borderColor: 'rgba(255, 99, 132, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}

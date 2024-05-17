@@ -2,23 +2,23 @@
 from selenium import webdriver
 import json
 
-# 启动第一个Chrome浏览器实例
-driver1 = webdriver.Chrome()
+# # 启动第一个Chrome浏览器实例
+# driver1 = webdriver.Chrome()
 
-# 导航至登录页面并完成登录
-driver1.get("https://www.gwdang.com/user/login/")
-# driver1.get("https://passport.jd.com/new/login.aspx")
-# 填写用户名和密码，提交表单等操作...
+# # 导航至登录页面并完成登录
+# driver1.get("https://www.gwdang.com/user/login/")
+# # driver1.get("https://passport.jd.com/new/login.aspx")
+# # 填写用户名和密码，提交表单等操作...
 
-# 登录成功后保存Cookie
-cookies = driver1.get_cookies()
-# 将cookies转换为JSON字符串
-cookies_json = json.dumps(cookies)
+# # 登录成功后保存Cookie
+# cookies = driver1.get_cookies()
+# # 将cookies转换为JSON字符串
+# cookies_json = json.dumps(cookies)
 
-# 将JSON字符串写入文件
-with open('cookies_gwd.txt', 'w') as file:
-# with open('cookies_jd.txt', 'w') as file:
-    file.write(cookies_json)
+# # 将JSON字符串写入文件
+# with open('cookies_gwd.txt', 'w') as file:
+# # with open('cookies_jd.txt', 'w') as file:
+#     file.write(cookies_json)
 
 
 # 记得关闭第一个浏览器实例（可选）

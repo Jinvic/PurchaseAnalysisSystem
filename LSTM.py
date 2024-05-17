@@ -11,8 +11,8 @@ from tensorflow.keras.layers import LSTM, Dense
 def LSTM_predict(df, future_days, qid=None):
     # 读取数据
     # DEBUG:
-    if df == None:
-        df = pd.read_csv('pro.csv')
+    # if df == None:
+    #     df = pd.read_csv('pro.csv')
     df['Date'] = pd.to_datetime(df['Date'])  # 确保为datetime类型
     df.set_index('Date', inplace=True)
 
@@ -70,7 +70,7 @@ def LSTM_predict(df, future_days, qid=None):
     # 反标准化预测结果
     actual_price = scaler.inverse_transform(y_test.reshape(-1, 1))
     predict_price = scaler.inverse_transform(predict_price)
-    predict_price=predict_price.astype(np.float64)
+    predict_price = predict_price.astype(np.float64)
 
     # # 可视化预测结果
     # plt.plot(df.index[-len(y_test):],
@@ -82,23 +82,29 @@ def LSTM_predict(df, future_days, qid=None):
     # plt.legend()
     # plt.show()
 
-    # 保存训练结果
-    data_to_insert = []  # 准备插入数据
-    for i in range(len(y_test)):
-        single_date_str = df.index[-len(y_test) + i].strftime('%Y-%m-%d')
-        data_to_insert.append(
-            (qid, single_date_str, actual_price[i][0], predict_price[i][0]))
+    if qid:
+        # 保存训练结果
+        data_to_insert = []  # 准备插入数据
+        train_result = pd.DataFrame(
+            columns=['date', 'actual_price', 'predict_price'])
+        for i in range(len(y_test)):
+            single_date_str = df.index[-len(y_test) + i].strftime('%Y-%m-%d')
+            data_to_insert.append(
+                (qid, single_date_str, actual_price[i][0], predict_price[i][0]))
+            train_result.loc[len(train_result)] = [
+                single_date_str, actual_price[i][0], predict_price[i][0]]
 
-    db = sql_class.SQLiteTool('train_result.db')
-    insert_sql = '''INSERT INTO train_result (
-        qid, 
-        date, 
-        actual_price, 
-        predict_price) 
-        VALUES (?, ?, ?, ?)'''
-    db.insert_many_data(insert_sql, data_to_insert)
-    db.close_connection()
+        # print(train_result)
 
+        db = sql_class.SQLiteTool('train_result.db')
+        insert_sql = '''INSERT INTO train_result (
+            qid, 
+            date, 
+            actual_price, 
+            predict_price) 
+            VALUES (?, ?, ?, ?)'''
+        db.insert_many_data(insert_sql, data_to_insert)
+        db.close_connection()
 
     # 获取训练数据的最后look_back天作为预测新数据的基底
     last_known_data = train_data[-look_back:]
@@ -135,21 +141,22 @@ def LSTM_predict(df, future_days, qid=None):
     # plt.tight_layout()  # 自动调整子图参数, 使之填充整个图像区域
     # plt.show()
 
-    # 保存预测结果
-    # 构造 (qid, 日期, 价格) 的元组列表
-    # predicted_future_prices.astype(np.float64)
-    prediction_tuples = [(qid, date.strftime('%Y-%m-%d'), price.astype(np.float64)) for date, price in zip(
-        predicted_future_dates, predicted_future_prices)]
-    # for tuple_item in prediction_tuples:
-    #     print(tuple_item)
-    db = sql_class.SQLiteTool('predict_result.db')
-    insert_sql = '''INSERT INTO predict_result (
-        qid, 
-        date, 
-        predict_price) 
-        VALUES (?, ?, ?)'''
-    db.insert_many_data(insert_sql, prediction_tuples)
-    db.close_connection()
+    if qid:
+        # 保存预测结果
+        # 构造 (qid, 日期, 价格) 的元组列表
+        # predicted_future_prices.astype(np.float64)
+        prediction_tuples = [(qid, date.strftime('%Y-%m-%d'), price.astype(np.float64)) for date, price in zip(
+            predicted_future_dates, predicted_future_prices)]
+        # for tuple_item in prediction_tuples:
+        #     print(tuple_item)
+        db = sql_class.SQLiteTool('predict_result.db')
+        insert_sql = '''INSERT INTO predict_result (
+            qid, 
+            date, 
+            predict_price) 
+            VALUES (?, ?, ?)'''
+        db.insert_many_data(insert_sql, prediction_tuples)
+        db.close_connection()
 
     # 将训练集实际价格保存到CSV
     # train_results = pd.DataFrame(
@@ -175,11 +182,9 @@ def LSTM_predict(df, future_days, qid=None):
 
     # 将未来预测价格转换为合适的dataframe格式
     future_predictions = pd.DataFrame(
-        {'Date': predicted_future_dates, 'Predicted_Future_Price': predicted_future_prices})
+        {'date': predicted_future_dates, 'predict_price': predicted_future_prices})
 
-    return future_predictions
-
-    
+    return train_result, future_predictions
 
 
 if __name__ == '__main__':
