@@ -176,30 +176,8 @@ def accounts_db_init():
     # 关闭连接
     db.close_connection()
 
+
 # 用户数据库初始化
-
-
-def users_db_init():
-
-    # 创建数据库
-    db = SQLiteTool("users.db")
-    create_table_sql = '''
-    CREATE TABLE IF NOT EXISTS users (
-        uid INTEGER PRIMARY KEY,
-        username TEXT NOT NULL UNIQUE,
-        password TEXT NOT NULL,
-        email NOT NULL UNIQUE
-    );
-    '''
-    db.create_table(create_table_sql)
-
-    insert_sql = "INSERT INTO users VALUES (?, ?, ?, ?)"
-    db.insert_data(insert_sql, (0, 'admin', 'admin', 'admin'))
-
-    # 关闭连接
-    db.close_connection()
-
-
 def users_db_init():
 
     # 创建数据库
@@ -258,18 +236,19 @@ def train_result_db_init():
     '''
     db.create_table(create_table_sql)
 
-    # insert_sql = '''INSERT INTO train_result (
-    #     qid, 
-    #     date, 
-    #     actual_price, 
-    #     predict_price) 
-    #     VALUES (?, ?, ?, ?)'''
-    # current_date = datetime.now().strftime('%Y-%m-%d')
-    # # 占位测试用
-    # db.insert_data(insert_sql, (0,  current_date, 0, 0))
+    insert_sql = '''INSERT INTO train_result (
+        qid,
+        date,
+        actual_price,
+        predict_price)
+        VALUES (?, ?, ?, ?)'''
+    current_date = datetime.now().strftime('%Y-%m-%d')
+    # 占位测试用
+    db.insert_data(insert_sql, (0,  current_date, 0, 0))
 
     # 关闭连接
     db.close_connection()
+
 
 def predict_result_db_init():
     # 创建数据库

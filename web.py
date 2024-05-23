@@ -1,5 +1,7 @@
 from flask import Flask, request, session, flash, redirect, url_for, jsonify, render_template
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
+from apscheduler.schedulers.background import BackgroundScheduler
+from apscheduler.triggers.cron import CronTrigger
 import re
 import os
 import json
@@ -17,9 +19,20 @@ app = Flask(__name__)
 host = '192.168.43.135'  # 热点
 port = '8000'
 
+# # 配置每周更新cookies
+# weekly_trigger = CronTrigger(day_of_week="mon", hour=0, minute=0)  # 每周一的00:00执行
+# scheduler = BackgroundScheduler()
+# scheduler.add_job(Selenium.refresh_cookies(), 'cron', trigger=weekly_trigger)
+# scheduler.start()
+
 
 # 初始化数据库表
 def initialize_database():
+    os.remove('accounts.db')
+    os.remove('users.db')
+    os.remove('queries.db')
+    os.remove('train_result.db')
+    os.remove('predict_result.db')
     sql_class.accounts_db_init()
     sql_class.users_db_init()
     sql_class.queries_db_init()
@@ -55,7 +68,8 @@ class User(UserMixin):
         if user_data:
             return cls(*user_data[0])
         return None
-
+    
+    # 通过用户名查找用户
     @classmethod
     def get_by_username(cls, username):
         db = sql_class.SQLiteTool(cls.db_path)
@@ -67,6 +81,7 @@ class User(UserMixin):
             return cls(*user_data[0])
         return None
 
+    # 通过邮箱查找用户
     @classmethod
     def get_by_email(cls, email):
         db = sql_class.SQLiteTool(cls.db_path)
@@ -293,7 +308,7 @@ def predict():
 
 def predict_result(df1, df2):
     # 将日期列转换为字符串格式，便于在HTML中直接使用
-    df1['date'] = pd.to_datetime(df1['date']).dt.strftime('%Y-%m-%d')
+    # df1['date'] = pd.to_datetime(df1['date']).dt.strftime('%Y-%m-%d')
     df2['date'] = pd.to_datetime(df2['date']).dt.strftime('%Y-%m-%d')
     # 准备数据为JSON格式，但这里直接传递DataFrame给模板更直观
     return render_template('predict_result.html', data1=df1.to_dict(orient='records'), data2=df2.to_dict(orient='records'))
@@ -310,8 +325,8 @@ def receive_sms():
 
     if message:
         # 处理短信内容,通过正则匹配6位数字验证码
-        # pattern = r"【京东】(\d{6})|【购物党】.*(\d{4})"
-        pattern = r"【购物党】.*(\d{4})"
+        pattern = r"【京东】(\d{6})|【购物党】.*(\d{4})"
+        # pattern = r"【购物党】.*(\d{4})"
         # pattern_gwd = r""
         match = re.search(pattern, message)
         verification_code = None
@@ -324,7 +339,8 @@ def receive_sms():
         pattern = r"\+86(\d{11})"
         match = re.search(pattern, message)
         mobile_number = match.group(1)
-        print(mobile_number, verification_code)
+        print(f'接收号码：{mobile_number}')
+        print(f'验证码：{verification_code}')
 
         db = sql_class.SQLiteTool('accounts.db')
         update_sql = "UPDATE accounts SET verification_code = ? WHERE mobile_number = ?"

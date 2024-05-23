@@ -23,6 +23,7 @@ import json
 #     f.write(response.text)
 
 
+# 解析获取商品信息
 def get_goods_info_jd(keywords):
     login_url_jd = 'https://passport.jd.com/new/login.aspx'
     index_url_jd = 'https://www.jd.com'

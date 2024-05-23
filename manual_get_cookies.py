@@ -1,6 +1,7 @@
 # 备用，手动登录保存cookie
 from selenium import webdriver
 import json
+import time
 
 # # 启动第一个Chrome浏览器实例
 # driver1 = webdriver.Chrome()
@@ -9,6 +10,8 @@ import json
 # driver1.get("https://www.gwdang.com/user/login/")
 # # driver1.get("https://passport.jd.com/new/login.aspx")
 # # 填写用户名和密码，提交表单等操作...
+
+# time.sleep(30)
 
 # # 登录成功后保存Cookie
 # cookies = driver1.get_cookies()
@@ -45,9 +48,9 @@ for cookie in cookies:
     })
 
 
-# 确保路径与你想要保持登录状态的页面一致
+# # 确保路径与你想要保持登录状态的页面一致
 driver2.refresh()
-driver2.get("https://www.gwdang.com/v2/trend")
-# driver2.get("https://www.jd.com")
+driver2.get("https://www.gwdang.com/")
+# # driver2.get("https://www.jd.com")
 
 # 此时，第二个浏览器应已自动登录

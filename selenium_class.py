@@ -301,7 +301,7 @@ class Selenium:
 
         return res
 
-    def refresh_cookies(cls):
+    def refresh_cookies():
         selenium_jd = Selenium(login_url='https://passport.jd.com/new/login.aspx',
                                index_url='https://www.jd.com',
                                search_url='https://search.jd.com/Search?keyword=')

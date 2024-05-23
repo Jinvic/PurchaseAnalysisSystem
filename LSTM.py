@@ -82,20 +82,20 @@ def LSTM_predict(df, future_days, qid=None):
     # plt.legend()
     # plt.show()
 
+    # 保存训练结果
+    data_to_insert = []  # 准备插入数据
+    train_result = pd.DataFrame(
+        columns=['date', 'actual_price', 'predict_price'])
+    for i in range(len(y_test)):
+        single_date_str = df.index[-len(y_test) + i].strftime('%Y-%m-%d')
+        data_to_insert.append(
+            (qid, single_date_str, actual_price[i][0], predict_price[i][0]))
+        train_result.loc[len(train_result)] = [
+            single_date_str, actual_price[i][0], predict_price[i][0]]
+
+    # print(train_result)
+    
     if qid:
-        # 保存训练结果
-        data_to_insert = []  # 准备插入数据
-        train_result = pd.DataFrame(
-            columns=['date', 'actual_price', 'predict_price'])
-        for i in range(len(y_test)):
-            single_date_str = df.index[-len(y_test) + i].strftime('%Y-%m-%d')
-            data_to_insert.append(
-                (qid, single_date_str, actual_price[i][0], predict_price[i][0]))
-            train_result.loc[len(train_result)] = [
-                single_date_str, actual_price[i][0], predict_price[i][0]]
-
-        # print(train_result)
-
         db = sql_class.SQLiteTool('train_result.db')
         insert_sql = '''INSERT INTO train_result (
             qid, 
